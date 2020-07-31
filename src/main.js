@@ -4,6 +4,13 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 
+import Antd from 'ant-design-vue'
+import 'ant-design-vue/dist/antd.less'
+
+import './styles/reset.css'
+
+Vue.use(Antd)
+
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
