@@ -56,7 +56,7 @@
       </div>
     </div>
     <div class="d-right">
-      <a-tabs default-active-key="1" @change="callback">
+      <a-tabs default-active-key="1" size="small" @change="callback">
         <a-tab-pane key="1" tab="基本信息">
           <Setting/>
         </a-tab-pane>
@@ -114,10 +114,14 @@ export default {
           '有无带包': '是:0.89711547',
           '肤色': '黄皮肤'
         }
-      ]
+      ],
+      taskId: '',
+      facegroupId: ''
     }
   },
   mounted () {
+    this.taskId = this.$route.params.taskId
+    this.facegroupId = this.$route.params.facegroupId
     api.getVideos().then(res => {
       console.log(res)
     }).catch(err => {

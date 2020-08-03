@@ -7,7 +7,14 @@
           <div class="go_box"><div class="back"></div></div>
           <div class="go"></div>
         </div>
-        <div class="opt">
+        <div class="opt mymenu" style="justify-content: center;">
+          <a-menu v-model="current" mode="horizontal">
+            <a-menu-item key="/facegroup"><router-link to="/facegroup">人脸库</router-link></a-menu-item>
+            <a-menu-item key="/face"><router-link to="/face">人脸</router-link></a-menu-item>
+            <a-menu-item key="/task"><router-link to="/task">任务</router-link></a-menu-item>
+          </a-menu>
+        </div>
+        <div class="opt" style="justify-content: flex-end;">
           <div class="person-info">
             <div class="avatar"><img src="./assets/user.png" alt=""></div>
             <div class="my-name">
@@ -40,6 +47,11 @@ export default {
     return {
       showMenus: false
     }
+  },
+  computed: {
+    current () {
+      return [this.$route.path]
+    }
   }
 }
 </script>
@@ -65,10 +77,11 @@ export default {
   z-index: 1000;
   line-height: 60px;
   padding: 0 40px 0 0;
-  justify-content: space-between;
+  align-self: center;
 }
 .header .opt {
   display: flex;
+  flex: 1;
 }
 .header .logo {
   display: flex;
@@ -87,6 +100,12 @@ export default {
   font-size: 20px;
   color: #acb0b7;
   letter-spacing: 1px;
+}
+
+.mymenu .ant-menu-horizontal {
+  line-height: 58px !important;
+  background-color: transparent !important;
+  border-bottom: none;
 }
 
 .header .opt .go_box {
@@ -211,18 +230,46 @@ export default {
   height: 100%;
   background-color: #171819;
   overflow: auto;
-  padding: 0 0 20px 0px;
+  padding: 0 0 0 0px;
 }
 
 /* 覆盖ant样式 */
-.ant-input {
-  background-color: #161616 !important;
-  border: 1px solid #3c3c3c !important;
+.mymenu .ant-menu {
+  color: #a2a2a2;
+}
+.ant-menu-horizontal > .ant-menu-item > a {
+  color: #a2a2a2;
+}
+.ant-menu-horizontal > .ant-menu-item-selected > a {
+  color: #1890ff;
+}
+.login-form .ant-input, .cut_catalog_dropdown .ant-input {
+  background-color: #161616;
+  border: 1px solid #3c3c3c;
   border-radius: 4px;
   font-size: 14px;
-  color: #fff !important;
+  color: #fff;
 }
-.ant-descriptions-item-label {
-  color: #fff !important;
+.desc-box .ant-descriptions-item-label {
+  color: #fff;
+}
+.desc-box .ant-descriptions-item-content {
+  color: #a2a2a2;
+}
+
+.d-right .ant-tabs {
+  color: #a2a2a2;
+}
+.d-right .ant-tabs-bar {
+  border-bottom: 1px solid #555;
+}
+.d-right .ant-tabs-nav .ant-tabs-tab-active {
+  color: #fff;
+}
+.d-right .ant-tabs-nav .ant-tabs-tab:hover {
+  color: #fff;
+}
+.d-right .ant-tabs-ink-bar {
+  background-color: #fff;
 }
 </style>

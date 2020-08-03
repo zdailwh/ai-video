@@ -3,6 +3,9 @@ import Router from 'vue-router'
 import Index from '@/views/index'
 import Video from '@/views/video'
 import Login from '@/views/login'
+import Facegroup from '@/views/facegroup'
+import Face from '@/views/face'
+import Task from '@/views/task'
 
 Vue.use(Router)
 
@@ -14,9 +17,24 @@ export default new Router({
       component: Index
     },
     {
-      path: '/video',
+      path: '/video/:taskId/:facegroupId',
       name: 'Video',
       component: Video
+    },
+    {
+      path: '/facegroup',
+      name: 'Facegroup',
+      component: Facegroup
+    },
+    {
+      path: '/face',
+      name: 'Face',
+      component: Face
+    },
+    {
+      path: '/task',
+      name: 'Task',
+      component: Task
     },
     {
       path: '/login',

@@ -15,7 +15,7 @@
               <a-input v-model="loginForm.password" type="password" placeholder="请输入密码" />
             </a-form-model-item>
             <a-form-model-item>
-              <a-button type="primary" style="background-color: #2a92fe;border:none;" @click="submitForm('loginForm')">
+              <a-button type="primary" @click="submitForm('loginForm')">
                 登录
               </a-button>
               <!-- <a-button style="margin-left: 10px" @click="resetForm('loginForm')">
