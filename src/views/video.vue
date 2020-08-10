@@ -32,7 +32,7 @@
               </div>
             </div> -->
           </div>
-          <div class="cut_catalog_dropdown">
+          <!-- <div class="cut_catalog_dropdown">
             <ul class="cut_catalog_list">
               <li class="cut_catalog_item">
                 <span class="title">设置起点 :</span>
@@ -50,18 +50,35 @@
                 </span>
               </li>
             </ul>
-          </div>
+          </div> -->
 
         </div>
       </div>
     </div>
     <div class="d-right">
       <a-tabs default-active-key="1" size="small" @change="callback">
-        <a-tab-pane key="1" tab="基本信息">
-          <Setting/>
+        <a-tab-pane key="1" tab="人脸识别">
+          <div class="searchWrap_video">
+            <a-form-model ref="searchForm" :model="searchForm" layout="inline">
+              <a-form-model-item label="人脸">
+                <a-select v-model="searchForm.type" mode="multiple" :dropdownMatchSelectWidth="false">
+                  <a-select-option value="">
+                    全部
+                  </a-select-option>
+                  <a-select-option :value="key" v-for="(val,key) in typeArr" v-bind:key="key">
+                    {{val}}
+                  </a-select-option>
+                </a-select>
+              </a-form-model-item>
+              <a-form-model-item>
+                <a-button type="primary" @click="searchHandleOk">搜索</a-button>
+              </a-form-model-item>
+            </a-form-model>
+          </div>
+          <Face :taskresult="datalist" @videofixed="videoFixed" />
         </a-tab-pane>
-        <a-tab-pane key="2" tab="人脸识别">
-          <Face :taskresult="taskResult" @videofixed="videoFixed" />
+        <a-tab-pane key="2" tab="基本信息">
+          <Setting/>
         </a-tab-pane>
       </a-tabs>
     </div>
@@ -77,56 +94,22 @@ export default {
   data () {
     return {
       datavideo: {
-        play_url: 'https://1256993030.vod2.myqcloud.com/d520582dvodtransgzp1256993030/7732bd367447398157015849771/v.f40.mp4'
+        play_url: '../assets/demo.mp4'
       },
-      taskResult: [
-        {
-          'faceId': '1-AAABczbmMnw9SqFvAAAAAg==',
-          'name': '张含韵',
-          'time': '1分1秒',
-          '上身纹理': '横条纹:0.82310396',
-          '下身尺寸': '长:0.9772702',
-          '下身类型': '短裙:0.8407891',
-          '下身颜色': '黑色:0.9499273',
-          '人朝向': '前:0.97419655',
-          '体形': '正常:0.99434173',
-          '发型': '长:0.9999629',
-          '头发': '长发',
-          '年龄': '18-30岁:0.9642571',
-          '性别': '女性:0.9999788',
-          '有无带包': '是:0.89711547',
-          '肤色': '黄皮肤'
-        },
-        {
-          'faceId': '2-AAABczbmMnw9SqFvAAAAAg==',
-          'name': '张含韵',
-          'time': '53秒',
-          '上身纹理': '横条纹:0.82310396',
-          '下身尺寸': '长:0.9772702',
-          '下身类型': '短裙:0.8407891',
-          '下身颜色': '黑色:0.9499273',
-          '人朝向': '前:0.97419655',
-          '体形': '正常:0.99434173',
-          '发型': '长:0.9999629',
-          '头发': '长发',
-          '年龄': '18-30岁:0.9642571',
-          '性别': '女性:0.9999788',
-          '有无带包': '是:0.89711547',
-          '肤色': '黄皮肤'
-        }
-      ],
+      datalist: [],
       taskId: '',
-      facegroupId: ''
+      searchForm: {
+        type: ''
+      },
+      typeArr: [ '张含韵', '张雨绮', '宁静', '伊能静' ]
     }
   },
   mounted () {
     this.taskId = this.$route.params.taskId
-    this.facegroupId = this.$route.params.facegroupId
-    api.getVideos().then(res => {
-      console.log(res)
-    }).catch(err => {
-      console.log(err)
-    })
+    if (this.taskId) {
+      this.getTaskResults()
+    }
+
     var widthPlayer = document.querySelector('#tcplayer').offsetWidth
     this.widthPlayer = widthPlayer
     this.heightPlayer = widthPlayer * 9 / 16
@@ -134,6 +117,20 @@ export default {
     this.createPlayer()
   },
   methods: {
+    getTaskResults () {
+      var params = {
+        taskId: this.taskId
+      }
+      api.getTaskResults(params).then(res => {
+        console.log(res)
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist = res.data || []
+        }
+      }).catch(error => {
+        console.log('error:')
+        console.log(error.response)
+      })
+    },
     callback (key) {
       console.log(key)
     },
@@ -162,6 +159,16 @@ export default {
         }
       })
       window.player = player
+    },
+    searchHandleOk () {
+      this.$refs.searchForm.validate(valid => {
+        if (valid) {
+          alert('submit!')
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
     },
     videoFixed (params) {
       var timeStr = params.currentTime
@@ -407,4 +414,8 @@ input[type="text"], textarea {
 .cut_catalog_dropdown .cut_catalog_list li.cut_catalog_item .btn.btn_ok {
   background-color: #2a92fe;
 }
+.searchWrap_video {
+  margin-bottom: 15px;
+}
+
 </style>

@@ -17,7 +17,7 @@ export default new Router({
       component: Index
     },
     {
-      path: '/video/:taskId/:facegroupId',
+      path: '/video/:taskId',
       name: 'Video',
       component: Video
     },
@@ -27,7 +27,7 @@ export default new Router({
       component: Facegroup
     },
     {
-      path: '/face',
+      path: '/face/:facegroupId',
       name: 'Face',
       component: Face
     },

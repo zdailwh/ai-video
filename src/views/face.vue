@@ -2,13 +2,20 @@
   <div class="faceContainer">
     <div class="tableWrap">
       <a-button type="primary" ghost class="editable-add-btn" @click="addVisible = true">新增人脸</a-button>
-      <a-table :columns="columns" :data-source="data" rowKey="id">
+      <a-table :columns="columns" :data-source="datalist" rowKey="id" size="small">
+        <p slot="Gender" slot-scope="text">{{ text === 'FEMALE'? '女': '男' }}</p>
         <p slot="time" slot-scope="text, record">
-          <span>创建时间：{{ record.create_time }}</span><br>
-          <span>更新时间：{{ record.update_time }}</span>
+          <span>创建时间：{{ record.create_time }}</span>
         </p>
-        <span slot="action" slot-scope="text, record">
-          <a>删除人脸</a>
+        <span slot="action" slot-scope="text, record, index">
+          <a-popconfirm
+            title="确定要删除该人脸吗?"
+            ok-text="删除"
+            cancel-text="取消"
+            @confirm="delFace(record.id, index)"
+          >
+            <a href="#">删除</a>
+          </a-popconfirm>
         </span>
       </a-table>
     </div>
@@ -24,9 +31,9 @@
           <a-form-model-item label="描述">
             <a-input v-model="addForm.desc" />
           </a-form-model-item>
-          <a-form-model-item label="人脸库ID">
+          <!-- <a-form-model-item label="人脸库ID">
             <a-input v-model="addForm.faceGroupId" />
-          </a-form-model-item>
+          </a-form-model-item> -->
           <a-form-model-item label="人脸图片">
             <a-upload
               list-type="picture"
@@ -49,6 +56,7 @@
   </div>
 </template>
 <script>
+import api from '../api'
 const columns = [
   {
     title: 'ID',
@@ -72,19 +80,20 @@ const columns = [
   },
   {
     title: '年龄',
-    dataIndex: 'attributes.age',
-    key: 'age'
+    dataIndex: 'attributes.Age',
+    key: 'Age'
   },
   {
     title: '性别',
-    dataIndex: 'attributes.gender',
-    key: 'gender'
+    dataIndex: 'attributes.Gender',
+    key: 'Gender',
+    scopedSlots: { customRender: 'Gender' }
   },
-  {
-    title: 'livness',
-    dataIndex: 'attributes.livness',
-    key: 'livness'
-  },
+  // {
+  //   title: 'livness',
+  //   dataIndex: 'livness',
+  //   key: 'attributes.livness'
+  // },
   {
     title: 'quality',
     dataIndex: 'attributes.quality',
@@ -102,87 +111,89 @@ const columns = [
   }
 ]
 
-const data = [
-  {
-    id: '12',
-    group_id: '0613a240-1a58-422d-a7bd-1aba11c6c31c',
-    name: 'group1',
-    description: 'group-desc',
-    attributes: {
-      age: 30,
-      gender: '1',
-      livness: 0,
-      quality: 0
-    },
-    create_time: '2020-07-31 8: 30: 20',
-    update_time: '2020-07-31 8: 30: 20'
-  },
-  {
-    id: '13',
-    group_id: '0713a240-1a58-422d-a7bd-1aba11c6c31c',
-    name: 'group2',
-    description: 'group-desc',
-    attributes: {
-      age: 30,
-      gender: '1',
-      livness: 0,
-      quality: 0
-    },
-    create_time: '2020-07-31 8: 30: 20',
-    update_time: '2020-07-31 8: 30: 20'
-  },
-  {
-    id: '14',
-    group_id: '0813a240-1a58-422d-a7bd-1aba11c6c31c',
-    name: 'group3',
-    description: 'group-desc',
-    attributes: {
-      age: 30,
-      gender: '1',
-      livness: 0,
-      quality: 0
-    },
-    create_time: '2020-07-31 8: 30: 20',
-    update_time: '2020-07-31 8: 30: 20'
-  }
-]
 export default {
   data () {
     return {
-      data,
+      facegroupId: '',
+      datalist: [],
+      pageOffset: 0,
+      pageSize: 10,
+      nextPageToken: '',
       columns,
       addVisible: false,
       addLoading: false,
       addForm: {
         name: '',
         desc: '',
-        faceGroupId: '',
         faceBase64: ''
       }
     }
   },
-  methods: {
-    handleOk (e) {
-      var self = this
-      var base64 = document.querySelectorAll('.ant-upload-list-item-image')[0].src
-      console.log(base64)
-      this.addForm.faceBase64 = base64
-      this.confirmLoading = true
-      setTimeout(() => {
-        const { data } = self
-        const newData = {
-          id: '0913a240-1a58-422d-a7bd-1aba11c6c31c',
-          name: 'group4',
-          description: 'group-desc',
-          type: 'MONITOR',
-          create_time: '2020-07-31 8: 30: 20',
-          update_time: '2020-07-31 8: 30: 20'
-        }
-        self.data = [...data, newData]
+  mounted () {
+    this.facegroupId = this.$route.params.facegroupId || ''
 
-        self.addVisible = false
-        self.confirmLoading = false
-      }, 2000)
+    if (this.facegroupId) {
+      this.getFaces()
+    }
+  },
+  methods: {
+    getFaces () {
+      var params = {
+        pageOffset: this.pageOffset,
+        pageSize: this.pageSize,
+        nextPageToken: this.nextPageToken,
+        faceGroupId: this.facegroupId
+      }
+      api.getFaces(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist = this.datalist.concat(res.data.faces)
+          this.nextPageToken = res.data.nextPageToken || ''
+          if (res.data.faces.length && res.data.nextPageToken) {
+            this.getFaces()
+          }
+        }
+      }).catch(error => {
+        console.log('error:')
+        console.log(error)
+      })
+    },
+    handleOk (e) {
+      if (this.facegroupId === '') {
+        this.$message.error('无效人脸库ID！')
+        return
+      }
+      if (this.addForm.name === '') {
+        this.$message.error('请填写名称！')
+        return
+      }
+      if (this.addForm.desc === '') {
+        this.$message.error('请填写描述！')
+        return
+      }
+      if (this.addForm.faceBase64 === '') {
+        this.$message.error('请上传人脸图片！')
+        return
+      }
+
+      var params = {
+        faceGroupId: this.facegroupId,
+        name: this.addForm.name,
+        desc: this.addForm.desc,
+        faceBase64: this.addForm.faceBase64
+      }
+      this.confirmLoading = true
+      api.addFace(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist.unshift(res.data)
+          this.addVisible = false
+          this.confirmLoading = false
+          this.$message.success('人脸创建成功')
+        }
+      }).catch(error => {
+        this.confirmLoading = false
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '创建出错！')
+      })
     },
     handleCancel (e) {
       this.addVisible = false
@@ -191,10 +202,63 @@ export default {
       console.log('beforeUpload')
       console.log(file)
       console.log(fileList)
+      var self = this
+      if (window.FileReader) {
+        var fr = new FileReader()
+        fr.readAsDataURL(file)
+        fr.onloadend = function (e) {
+          var base64Data = e.target.result
+          self.addForm.faceBase64 = base64Data.substring(base64Data.indexOf(',') + 1)
+        }
+      }
       return false
+    },
+    // transformFile(file) {
+    //   return new Promise(resolve => {
+    //     const reader = new FileReader()
+    //     reader.readAsDataURL(file)
+    //     reader.onload = () => {
+    //       const canvas = document.createElement('canvas')
+    //       const img = document.createElement('img')
+    //       img.src = reader.result
+    //       img.onload = () => {
+    //         const ctx = canvas.getContext('2d')
+    //         ctx.drawImage(img, 0, 0)
+    //         ctx.fillStyle = 'red'
+    //         ctx.textBaseline = 'middle'
+    //         ctx.fillText('Ant Design', 20, 20)
+    //         canvas.toBlob(resolve)
+    //       }
+    //     }
+    //   })
+    // },
+    delFace (id, idx) {
+      var params = {
+        id: id
+      }
+      api.delFace(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist.splice(idx, 1)
+          this.$message.success('人脸删除成功')
+        }
+      }).catch(error => {
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '删除出错！')
+      })
     }
   }
 }
+
+// function getBase64Image (img) {
+//   var canvas = document.createElement('canvas')
+//   canvas.width = img.width
+//   canvas.height = img.height
+//   var ctx = canvas.getContext('2d')
+//   ctx.drawImage(img, 0, 0, img.width, img.height)
+//   var ext = img.src.substring(img.src.lastIndexOf('.') + 1).toLowerCase()
+//   var dataURL = canvas.toDataURL('image/' + ext)
+//   return dataURL
+// }
 </script>
 <style scoped>
 .faceContainer {

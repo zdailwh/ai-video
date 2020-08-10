@@ -2,17 +2,17 @@
   <div class="taskContainer">
     <div class="searchWrap">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="任务类型">
+        <a-form-model-item label="任务类型" prop="type">
           <a-select v-model="searchForm.type" :dropdownMatchSelectWidth="false">
             <a-select-option value="">
               全部
             </a-select-option>
-            <a-select-option :value="key" v-for="(val,key) in typeArr" v-bind:key="key">
+            <a-select-option :value="key" v-for="(val,key) in typeArr_search" v-bind:key="key">
               {{val}}
             </a-select-option>
           </a-select>
         </a-form-model-item>
-        <a-form-model-item label="任务ID">
+        <a-form-model-item label="任务ID" prop="taskId">
           <a-input v-model="searchForm.taskId" />
         </a-form-model-item>
         <a-form-model-item>
@@ -24,11 +24,18 @@
     <a-divider />
     <div class="tableWrap">
       <a-button type="primary" ghost class="editable-add-btn" @click="addVisible = true">新增任务</a-button>
-      <a-table :columns="columns" :data-source="data" rowKey="id">
-        <span slot="action" slot-scope="text, record">
-          <a>删除任务</a>
+      <a-table :columns="columns" :data-source="datalist" rowKey="id" size="middle">
+        <span slot="action" slot-scope="text, record, index">
+          <a-popconfirm
+            title="确定要删除该任务吗?"
+            ok-text="删除"
+            cancel-text="取消"
+            @confirm="delTask(record.id, index)"
+          >
+            <a href="#">删除</a>
+          </a-popconfirm>
           <a-divider type="vertical" />
-          <router-link :to="'/video/'+record.id+'/123'">查看任务结果</router-link>
+          <router-link :to="'/video/' + record.id">查看任务结果</router-link>
         </span>
       </a-table>
     </div>
@@ -48,7 +55,7 @@
           <a-form-model-item label="上传视频" v-if="addForm.type === 1">
             <a-upload
               list-type="picture"
-              action="//jsonplaceholder.typicode.com/posts/"
+              action="/apis/api/v1/upload/file"
               name="videoFile"
               @change="uploadVideoChange"
             >
@@ -56,7 +63,7 @@
             </a-upload>
           </a-form-model-item>
           <a-form-model-item label="任务地址">
-            <a-input v-model="addForm.url" />
+            <a-input v-model="addForm.url" :disabled="addForm.type === 1" />
           </a-form-model-item>
           <a-form-model-item label="任务名称">
             <a-input v-model="addForm.name" />
@@ -81,6 +88,7 @@
   </div>
 </template>
 <script>
+import api from '../api'
 const columns = [
   {
     title: 'ID',
@@ -114,33 +122,13 @@ const columns = [
   }
 ]
 
-const data = [
-  {
-    id: '12',
-    name: 'group1',
-    description: 'group-desc',
-    status: 'VIDEO_PROCESSING',
-    monitors: ['8f89058b-7cdc-4a29-93b5-8f89e8d6ecca']
-  },
-  {
-    id: '13',
-    name: 'group2',
-    description: 'group-desc',
-    status: 'VIDEO_PROCESSING',
-    monitors: ['8f89058b-7cdc-4a29-93b5-8f89e8d6ecca']
-  },
-  {
-    id: '14',
-    name: 'group3',
-    description: 'group-desc',
-    status: 'VIDEO_PROCESSING',
-    monitors: ['8f89058b-7cdc-4a29-93b5-8f89e8d6ecca']
-  }
-]
 export default {
   data () {
     return {
-      data,
+      datalist: [],
+      pageNum: 0,
+      pageSize: 10,
+      nextPageToken: '',
       columns,
       addVisible: false,
       addLoading: false,
@@ -155,40 +143,91 @@ export default {
         type: '',
         taskId: ''
       },
-      typeArr: [ '实时rtsp视频流', '用户上传视频文件', '用户平台录像文件' ]
+      typeArr: [ '实时rtsp视频流', '用户上传视频文件', '用户平台录像文件' ],
+      typeArr_search: [ '在线视频任务', '离线视频任务' ]
     }
   },
+  mounted () {
+    this.getTasks()
+  },
   methods: {
-    handleOk (e) {
-      var self = this
-      this.confirmLoading = true
-      setTimeout(() => {
-        const { data } = self
-        const newData = {
-          id: '15',
-          name: 'group4',
-          description: 'group-desc',
-          status: 'VIDEO_PROCESSING',
-          monitors: ['8f89058b-7cdc-4a29-93b5-8f89e8d6ecca']
+    getTasks () {
+      var params = {
+        pageNum: this.pageNum,
+        pageSize: this.pageSize,
+        nextPageToken: this.nextPageToken,
+        faceGroupId: this.facegroupId
+      }
+      if (this.searchForm.type !== '') {
+        params.type = this.searchForm.type
+      }
+      if (this.searchForm.taskId !== '') {
+        params.taskId = this.searchForm.taskId
+      }
+      api.getTasks(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist = this.datalist.concat(res.data.data)
+          this.pageNum = this.pageNum + 1
+          this.nextPageToken = res.data.nextPageToken || ''
+          if (res.data.data.length && res.data.nextPageToken) {
+            this.getTasks()
+          }
         }
-        self.data = [...data, newData]
-
-        self.addVisible = false
-        self.confirmLoading = false
-      }, 2000)
+      }).catch(error => {
+        console.log('error:')
+        console.log(error)
+      })
+    },
+    handleOk (e) {
+      if (this.addForm.type === '') {
+        this.$message.error('请选择任务类型！')
+        return
+      }
+      if (this.addForm.url === '') {
+        this.$message.error('请填写任务地址！')
+        return
+      }
+      if (this.addForm.name === '') {
+        this.$message.error('请填写任务名称！')
+        return
+      }
+      if (this.addForm.repoId === '') {
+        this.$message.error('请填写布控人脸库ID！')
+        return
+      }
+      if (this.addForm.rate === '') {
+        this.$message.error('请填写报警阀值！')
+        return
+      }
+      var params = {
+        type: this.addForm.type,
+        url: this.addForm.url + '',
+        name: this.addForm.name,
+        repoId: this.addForm.repoId,
+        rate: this.addForm.rate
+      }
+      this.confirmLoading = true
+      api.addTask(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          // {"taskId":"d751ac64-be01-4c01-aea9-3a8a80e537e3"}
+          this.datalist.unshift(res.data)
+          this.addVisible = false
+          this.confirmLoading = false
+          this.$message.success('任务创建成功')
+        }
+      }).catch(error => {
+        this.confirmLoading = false
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '创建出错！')
+      })
     },
     handleCancel (e) {
       this.addVisible = false
     },
     searchHandleOk () {
-      this.$refs.searchForm.validate(valid => {
-        if (valid) {
-          alert('submit!')
-        } else {
-          console.log('error submit!!')
-          return false
-        }
-      })
+      this.datalist = []
+      this.pageNum = 0
+      this.getTasks()
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
@@ -199,10 +238,25 @@ export default {
       }
       if (info.file.status === 'done') {
         this.$message.success(`${info.file.name} 文件上传成功`)
-        console.log(info.event)
+        var fileId = info.file.response.fileId
+        this.addForm.url = fileId
       } else if (info.file.status === 'error') {
         this.$message.error(`${info.file.name} 文件上传失败.`)
       }
+    },
+    delTask (id, idx) {
+      var params = {
+        id: id
+      }
+      api.delTask(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist.splice(idx, 1)
+          this.$message.success('任务删除成功')
+        }
+      }).catch(error => {
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '删除出错！')
+      })
     }
   }
 }

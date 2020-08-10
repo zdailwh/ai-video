@@ -2,17 +2,22 @@
   <div class="faceGroupContainer">
     <div class="tableWrap">
       <a-button type="primary" ghost class="editable-add-btn" @click="addVisible = true">新增人脸库</a-button>
-      <a-table :columns="columns" :data-source="data" rowKey="id">
+      <a-table :columns="columns" :data-source="datalist" rowKey="id" size="middle">
         <p slot="time" slot-scope="text, record">
-          <span>创建时间：{{ record.create_time }}</span><br>
-          <span>更新时间：{{ record.update_time }}</span>
+          <span>创建时间：{{ record.create_time | dateFormat }}</span><br>
+          <span>更新时间：{{ record.update_time | dateFormat }}</span>
         </p>
-        <span slot="action" slot-scope="text, record">
-          <a>删除人脸库</a>
+        <span slot="action" slot-scope="text, record, index">
+          <a-popconfirm
+            title="确定要删除该人脸库吗?"
+            ok-text="删除"
+            cancel-text="取消"
+            @confirm="delFacegroup(record.id, index)"
+          >
+            <a href="#">删除</a>
+          </a-popconfirm>
           <a-divider type="vertical" />
-          <a>人脸列表</a>
-          <a-divider type="vertical" />
-          <a>新增人脸</a>
+          <router-link :to="'/face/' + record.id">查看人脸</router-link>
         </span>
       </a-table>
     </div>
@@ -52,6 +57,9 @@
   </div>
 </template>
 <script>
+import api from '../api'
+var moment = require('moment')
+
 const columns = [
   {
     title: 'ID',
@@ -85,68 +93,100 @@ const columns = [
   }
 ]
 
-const data = [
-  {
-    id: '0613a240-1a58-422d-a7bd-1aba11c6c31c',
-    name: 'group1',
-    description: 'group-desc',
-    type: 'MONITOR',
-    create_time: '2020-07-31 8: 30: 20',
-    update_time: '2020-07-31 8: 30: 20'
-  },
-  {
-    id: '0713a240-1a58-422d-a7bd-1aba11c6c31c',
-    name: 'group2',
-    description: 'group-desc',
-    type: 'MONITOR',
-    create_time: '2020-07-31 8: 30: 20',
-    update_time: '2020-07-31 8: 30: 20'
-  },
-  {
-    id: '0813a240-1a58-422d-a7bd-1aba11c6c31c',
-    name: 'group3',
-    description: 'group-desc',
-    type: 'MONITOR',
-    create_time: '2020-07-31 8: 30: 20',
-    update_time: '2020-07-31 8: 30: 20'
-  }
-]
 export default {
   data () {
     return {
-      data,
+      datalist: [],
+      pageOffset: 0,
+      pageSize: 10,
+      nextPageToken: '',
       columns,
       addVisible: false,
       addLoading: false,
       addForm: {
         name: '',
         description: '',
-        type: ''
+        group_type: ''
       }
     }
   },
+  filters: {
+    dateFormat (val) {
+      if (val === '') return ''
+      return moment(val).format('YYYY-MM-DD hh:mm:ss')
+    }
+  },
+  mounted () {
+    this.getFacegroups()
+  },
   methods: {
-    handleOk (e) {
-      var self = this
-      this.confirmLoading = true
-      setTimeout(() => {
-        const { data } = self
-        const newData = {
-          id: '0913a240-1a58-422d-a7bd-1aba11c6c31c',
-          name: 'group4',
-          description: 'group-desc',
-          type: 'MONITOR',
-          create_time: '2020-07-31 8: 30: 20',
-          update_time: '2020-07-31 8: 30: 20'
+    getFacegroups () {
+      var params = {
+        pageOffset: this.pageOffset,
+        pageSize: this.pageSize,
+        nextPageToken: this.nextPageToken
+      }
+      api.getFacegroups(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist = this.datalist.concat(res.data.faceGroups)
+          this.nextPageToken = res.data.nextPageToken || ''
+          if (res.data.faceGroups.length && res.data.nextPageToken) {
+            this.getFacegroups()
+          }
         }
-        self.data = [...data, newData]
-
-        self.addVisible = false
-        self.confirmLoading = false
-      }, 2000)
+      }).catch(error => {
+        console.log('error:')
+        console.log(error)
+      })
+    },
+    handleOk (e) {
+      if (this.addForm.name === '') {
+        this.$message.error('请填写名称！')
+        return
+      }
+      if (this.addForm.description === '') {
+        this.$message.error('请填写描述！')
+        return
+      }
+      if (this.addForm.group_type === '') {
+        this.$message.error('请选择类型！')
+        return
+      }
+      var params = {
+        name: this.addForm.name,
+        description: this.addForm.description,
+        group_type: this.addForm.group_type
+      }
+      this.confirmLoading = true
+      api.addFacegroup(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist.unshift(res.data)
+          this.addVisible = false
+          this.confirmLoading = false
+          this.$message.success('人脸库创建成功')
+        }
+      }).catch(error => {
+        this.confirmLoading = false
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '创建出错！')
+      })
     },
     handleCancel (e) {
       this.addVisible = false
+    },
+    delFacegroup (id, idx) {
+      var params = {
+        id: id
+      }
+      api.delFacegroup(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist.splice(idx, 1)
+          this.$message.success('人脸库删除成功')
+        }
+      }).catch(error => {
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '删除出错！')
+      })
     }
   }
 }

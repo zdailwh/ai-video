@@ -10,7 +10,7 @@
         <div class="opt mymenu" style="justify-content: center;">
           <a-menu v-model="current" mode="horizontal">
             <a-menu-item key="/facegroup"><router-link to="/facegroup">人脸库</router-link></a-menu-item>
-            <a-menu-item key="/face"><router-link to="/face">人脸</router-link></a-menu-item>
+            <!-- <a-menu-item key="/face"><router-link to="/face">人脸</router-link></a-menu-item> -->
             <a-menu-item key="/task"><router-link to="/task">任务</router-link></a-menu-item>
           </a-menu>
         </div>
@@ -271,5 +271,23 @@ export default {
 }
 .d-right .ant-tabs-ink-bar {
   background-color: #fff;
+}
+.searchWrap_video .ant-form-item-label > label {
+  color: #fff;
+}
+.searchWrap_video .ant-select-selection {
+  background-color: #161616;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #fff;
+}
+.searchWrap_video .ant-select-selection--multiple .ant-select-selection__choice {
+  background-color: #000;
+  color: #989898;
+  border: 1px solid #989898;
+}
+.searchWrap_video .ant-select-selection--multiple .ant-select-selection__choice__remove {
+  color: #989898;
 }
 </style>
