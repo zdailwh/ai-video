@@ -13,6 +13,10 @@ export default new Router({
   routes: [
     {
       path: '/',
+      redirect: '/facegroup'
+    },
+    {
+      path: '/index',
       name: 'Index',
       component: Index
     },

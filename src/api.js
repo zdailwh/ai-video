@@ -1,7 +1,7 @@
 import axios from 'axios'
-axios.defaults.baseURL = '/apis'
+// axios.defaults.baseURL = '/apis'
+axios.defaults.baseURL = 'http://aicore.evereasycom.cn:8001'
 
-// const host = 'http://127.0.0.1:8001'
 export default {
   async addFacegroup (params) {
     var res = await axios.post('/api/v1/facegroup', {

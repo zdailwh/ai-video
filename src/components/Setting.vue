@@ -1,12 +1,29 @@
 <template>
   <div class="settingWrap">
     <ul>
-      <li><p class="title">文件名称：</p><p class="cont">乘风破浪的姐姐20200616.mp4</p></li>
-      <li><p class="title">文件属性：</p><p class="cont">视频/445.4MB/01:09:15</p></li>
-      <li><p class="title">素材来源：</p><p class="cont">D:\迅雷下载</p></li>
+      <li><p class="title">ID：</p><p class="cont">{{taskinfo.id}}</p></li>
+      <li><p class="title">任务名称：</p><p class="cont">{{taskinfo.name}}</p></li>
+      <li><p class="title">任务描述：</p><p class="cont">{{taskinfo.description}}</p></li>
+      <li><p class="title">状态：</p><p class="cont">{{taskinfo.status}}</p></li>
+      <li><p class="title">monitors：</p><p class="cont" v-for="(item, key) in taskinfo.monitors" :key="key">{{item}}</p></li>
     </ul>
   </div>
 </template>
+<script>
+export default {
+  props: [ 'taskinfo' ],
+  data () {
+    return {
+    }
+  },
+  filters: {
+  },
+  watch: {
+    taskinfo (val, oldVal) {
+    }
+  }
+}
+</script>
 <style scoped>
 .settingWrap {
   padding: 0 10px;

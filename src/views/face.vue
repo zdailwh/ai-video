@@ -1,23 +1,37 @@
 <template>
   <div class="faceContainer">
     <div class="tableWrap">
-      <a-button type="primary" ghost class="editable-add-btn" @click="addVisible = true">新增人脸</a-button>
-      <a-table :columns="columns" :data-source="datalist" rowKey="id" size="small">
-        <p slot="Gender" slot-scope="text">{{ text === 'FEMALE'? '女': '男' }}</p>
-        <p slot="time" slot-scope="text, record">
-          <span>创建时间：{{ record.create_time }}</span>
-        </p>
-        <span slot="action" slot-scope="text, record, index">
-          <a-popconfirm
-            title="确定要删除该人脸吗?"
-            ok-text="删除"
-            cancel-text="取消"
-            @confirm="delFace(record.id, index)"
-          >
-            <a href="#">删除</a>
-          </a-popconfirm>
-        </span>
-      </a-table>
+      <a-spin :spinning="spinning">
+        <a-row :gutter="16">
+          <a-col :span="4">
+            <a-card style="border: 1px solid #1890ff;">
+              <p><a-icon type="plus-circle" class="plusWrap" title="新增人脸" @click="addVisible = true" /></p>
+              <p style="color: #1890ff;font-size: 16px;text-align: center;">添加人脸</p>
+            </a-card>
+          </a-col>
+          <a-col :span="4" style="padding-bottom: 15px;" v-for="(item, key) in datalist" :key="key">
+            <a-card hoverable>
+              <img slot="cover" alt="example" :src="item.fullUri" />
+              <a-card-meta :title="item.name">
+                <template slot="description">
+                  <p class="desc">{{item.description}}</p>
+                  <p class="date">({{item.create_time | dateFormat}})</p>
+                </template>
+              </a-card-meta>
+              <template slot="actions" class="ant-card-actions">
+                <a-popconfirm
+                  title="确定要删除该人脸吗?"
+                  ok-text="删除"
+                  cancel-text="取消"
+                  @confirm="delFace(item.id, key)"
+                >
+                  <a-icon key="delete" type="delete" title="删除" />
+                </a-popconfirm>
+              </template>
+            </a-card>
+          </a-col>
+        </a-row>
+      </a-spin>
     </div>
     <a-modal
       title="创建人脸"
@@ -57,6 +71,7 @@
 </template>
 <script>
 import api from '../api'
+var moment = require('moment')
 const columns = [
   {
     title: 'ID',
@@ -112,8 +127,12 @@ const columns = [
 ]
 
 export default {
+  beforeRouteEnter (to, from, next) {
+    next()
+  },
   data () {
     return {
+      spinning: false,
       facegroupId: '',
       datalist: [],
       pageOffset: 0,
@@ -129,7 +148,16 @@ export default {
       }
     }
   },
+  filters: {
+    dateFormat (val) {
+      if (val === '') return ''
+      return moment(val).format('YYYY-MM-DD hh:mm:ss')
+    }
+  },
   mounted () {
+    var ele = document.querySelectorAll('.file-main')
+    ele[0].style.backgroundColor = '#fff'
+
     this.facegroupId = this.$route.params.facegroupId || ''
 
     if (this.facegroupId) {
@@ -144,15 +172,23 @@ export default {
         nextPageToken: this.nextPageToken,
         faceGroupId: this.facegroupId
       }
+      this.spinning = true
       api.getFaces(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.datalist = this.datalist.concat(res.data.faces)
+          var faces = res.data.faces.map((value, index, array) => {
+            value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', 'http://127.0.0.1:8001')
+            return value
+          })
+          this.datalist = this.datalist.concat(faces)
           this.nextPageToken = res.data.nextPageToken || ''
           if (res.data.faces.length && res.data.nextPageToken) {
             this.getFaces()
+          } else {
+            this.spinning = false
           }
         }
       }).catch(error => {
+        this.spinning = false
         console.log('error:')
         console.log(error)
       })
@@ -181,16 +217,25 @@ export default {
         desc: this.addForm.desc,
         faceBase64: this.addForm.faceBase64
       }
-      this.confirmLoading = true
+      this.spinning = true
       api.addFace(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.datalist.unshift(res.data)
+          // this.datalist.unshift(res.data)
+          this.datalist = []
+          this.nextPageToken = ''
+          this.getFaces()
+
           this.addVisible = false
-          this.confirmLoading = false
+          this.spinning = false
+          this.addForm = {
+            name: '',
+            desc: '',
+            faceBase64: ''
+          }
           this.$message.success('人脸创建成功')
         }
       }).catch(error => {
-        this.confirmLoading = false
+        this.spinning = false
         console.log(error.response)
         this.$message.error(error.response.data.message || '创建出错！')
       })
@@ -213,25 +258,6 @@ export default {
       }
       return false
     },
-    // transformFile(file) {
-    //   return new Promise(resolve => {
-    //     const reader = new FileReader()
-    //     reader.readAsDataURL(file)
-    //     reader.onload = () => {
-    //       const canvas = document.createElement('canvas')
-    //       const img = document.createElement('img')
-    //       img.src = reader.result
-    //       img.onload = () => {
-    //         const ctx = canvas.getContext('2d')
-    //         ctx.drawImage(img, 0, 0)
-    //         ctx.fillStyle = 'red'
-    //         ctx.textBaseline = 'middle'
-    //         ctx.fillText('Ant Design', 20, 20)
-    //         canvas.toBlob(resolve)
-    //       }
-    //     }
-    //   })
-    // },
     delFace (id, idx) {
       var params = {
         id: id
@@ -248,17 +274,6 @@ export default {
     }
   }
 }
-
-// function getBase64Image (img) {
-//   var canvas = document.createElement('canvas')
-//   canvas.width = img.width
-//   canvas.height = img.height
-//   var ctx = canvas.getContext('2d')
-//   ctx.drawImage(img, 0, 0, img.width, img.height)
-//   var ext = img.src.substring(img.src.lastIndexOf('.') + 1).toLowerCase()
-//   var dataURL = canvas.toDataURL('image/' + ext)
-//   return dataURL
-// }
 </script>
 <style scoped>
 .faceContainer {
@@ -269,5 +284,18 @@ export default {
 }
 .tableWrap {
   width: 100%;
+}
+.plusWrap {
+  display: block;
+  margin: 50px auto;
+  font-size: 50px;
+  color: #1890ff;
+}
+.desc {
+  color: #555;
+}
+.date {
+  font-size: .8em;
+  color: #aaa;
 }
 </style>

@@ -1,25 +1,37 @@
 <template>
   <div class="faceGroupContainer">
     <div class="tableWrap">
-      <a-button type="primary" ghost class="editable-add-btn" @click="addVisible = true">新增人脸库</a-button>
-      <a-table :columns="columns" :data-source="datalist" rowKey="id" size="middle">
-        <p slot="time" slot-scope="text, record">
-          <span>创建时间：{{ record.create_time | dateFormat }}</span><br>
-          <span>更新时间：{{ record.update_time | dateFormat }}</span>
-        </p>
-        <span slot="action" slot-scope="text, record, index">
-          <a-popconfirm
-            title="确定要删除该人脸库吗?"
-            ok-text="删除"
-            cancel-text="取消"
-            @confirm="delFacegroup(record.id, index)"
-          >
-            <a href="#">删除</a>
-          </a-popconfirm>
-          <a-divider type="vertical" />
-          <router-link :to="'/face/' + record.id">查看人脸</router-link>
-        </span>
-      </a-table>
+      <a-spin :spinning="spinning">
+        <a-row :gutter="16">
+          <a-col :span="4">
+            <a-card style="border: 1px solid #1890ff;">
+              <p><a-icon type="plus-circle" class="plusWrap" title="新增人脸库" @click="addVisible = true" /></p>
+              <p style="color: #1890ff;font-size: 16px;text-align: center;">添加人脸库</p>
+            </a-card>
+          </a-col>
+          <a-col :span="4" style="padding-bottom: 15px;" v-for="(item, key) in datalist" :key="key">
+            <a-card hoverable>
+              <a-card-meta :title="item.name">
+                <template slot="description">
+                  <p class="desc">{{item.description}}</p>
+                  <p class="date">({{item.create_time | dateFormat}})</p>
+                </template>
+              </a-card-meta>
+              <template slot="actions" class="ant-card-actions">
+                <a-popconfirm
+                  title="确定要删除该人脸库吗?"
+                  ok-text="删除"
+                  cancel-text="取消"
+                  @confirm="delFacegroup(item.id, key)"
+                >
+                  <a-icon key="delete" type="delete" title="删除" />
+                </a-popconfirm>
+                <router-link :to="'/face/' + item.id" title="查看人脸"><a-icon key="team" type="team" /></router-link>
+              </template>
+            </a-card>
+          </a-col>
+        </a-row>
+      </a-spin>
     </div>
     <a-modal
       title="创建人脸库"
@@ -94,8 +106,12 @@ const columns = [
 ]
 
 export default {
+  beforeRouteEnter (to, from, next) {
+    next()
+  },
   data () {
     return {
+      spinning: false,
       datalist: [],
       pageOffset: 0,
       pageSize: 10,
@@ -117,6 +133,9 @@ export default {
     }
   },
   mounted () {
+    var ele = document.querySelectorAll('.file-main')
+    ele[0].style.backgroundColor = '#fff'
+
     this.getFacegroups()
   },
   methods: {
@@ -126,15 +145,20 @@ export default {
         pageSize: this.pageSize,
         nextPageToken: this.nextPageToken
       }
+      this.spinning = true
       api.getFacegroups(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.datalist = this.datalist.concat(res.data.faceGroups)
           this.nextPageToken = res.data.nextPageToken || ''
           if (res.data.faceGroups.length && res.data.nextPageToken) {
             this.getFacegroups()
+          } else {
+            this.$store.commit('setFacegroups', this.datalist)
+            this.spinning = false
           }
         }
       }).catch(error => {
+        this.spinning = false
         console.log('error:')
         console.log(error)
       })
@@ -157,16 +181,25 @@ export default {
         description: this.addForm.description,
         group_type: this.addForm.group_type
       }
-      this.confirmLoading = true
+      this.spinning = true
       api.addFacegroup(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.datalist.unshift(res.data)
+          // this.datalist.unshift(res.data)
+          this.datalist = []
+          this.nextPageToken = ''
+          this.getFacegroups()
+
           this.addVisible = false
-          this.confirmLoading = false
+          this.spinning = false
+          this.addForm = {
+            name: '',
+            description: '',
+            group_type: ''
+          }
           this.$message.success('人脸库创建成功')
         }
       }).catch(error => {
-        this.confirmLoading = false
+        this.spinning = false
         console.log(error.response)
         this.$message.error(error.response.data.message || '创建出错！')
       })
@@ -200,5 +233,18 @@ export default {
 }
 .tableWrap {
   width: 100%;
+}
+.plusWrap {
+  display: block;
+  margin: 20px auto;
+  font-size: 50px;
+  color: #1890ff;
+}
+.desc {
+  color: #555;
+}
+.date {
+  font-size: .8em;
+  color: #aaa;
 }
 </style>

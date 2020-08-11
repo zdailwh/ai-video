@@ -1,6 +1,6 @@
 <template>
   <div class="taskContainer">
-    <div class="searchWrap">
+    <!-- <div class="searchWrap">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
         <a-form-model-item label="任务类型" prop="type">
           <a-select v-model="searchForm.type" :dropdownMatchSelectWidth="false">
@@ -21,23 +21,40 @@
         </a-form-model-item>
       </a-form-model>
     </div>
-    <a-divider />
+    <a-divider /> -->
     <div class="tableWrap">
-      <a-button type="primary" ghost class="editable-add-btn" @click="addVisible = true">新增任务</a-button>
-      <a-table :columns="columns" :data-source="datalist" rowKey="id" size="middle">
-        <span slot="action" slot-scope="text, record, index">
-          <a-popconfirm
-            title="确定要删除该任务吗?"
-            ok-text="删除"
-            cancel-text="取消"
-            @confirm="delTask(record.id, index)"
-          >
-            <a href="#">删除</a>
-          </a-popconfirm>
-          <a-divider type="vertical" />
-          <router-link :to="'/video/' + record.id">查看任务结果</router-link>
-        </span>
-      </a-table>
+      <a-spin :spinning="spinning">
+        <a-row :gutter="16">
+          <a-col :span="4">
+            <a-card style="border: 1px solid #1890ff;">
+              <p><a-icon type="plus-circle" class="plusWrap" title="新增任务" @click="addVisible = true" /></p>
+              <p style="color: #1890ff;font-size: 16px;text-align: center;">添加任务</p>
+            </a-card>
+          </a-col>
+          <a-col :span="4" style="padding-bottom: 15px;" v-for="(item, key) in datalist" :key="key">
+            <a-card hoverable>
+              <video slot="cover" :src="item.url"></video>
+              <a-card-meta :title="item.name">
+                <template slot="description">
+                  <p class="desc">{{item.description}}</p>
+                  <p class="date">({{item.status}})</p>
+                </template>
+              </a-card-meta>
+              <template slot="actions" class="ant-card-actions">
+                <a-popconfirm
+                  title="确定要删除该任务吗?"
+                  ok-text="删除"
+                  cancel-text="取消"
+                  @confirm="delTask(item.id, key)"
+                >
+                  <a-icon key="delete" type="delete" title="删除" />
+                </a-popconfirm>
+                <router-link :to="'/video/' + item.id" title="查看任务结果"><a-icon type="solution" /></router-link>
+              </template>
+            </a-card>
+          </a-col>
+        </a-row>
+      </a-spin>
     </div>
     <a-modal
       title="创建任务"
@@ -68,8 +85,15 @@
           <a-form-model-item label="任务名称">
             <a-input v-model="addForm.name" />
           </a-form-model-item>
-          <a-form-model-item label="人脸库ID">
+          <!-- <a-form-model-item label="人脸库ID">
             <a-input v-model="addForm.repoId" />
+          </a-form-model-item> -->
+          <a-form-model-item label="人脸库">
+            <a-select v-model="addForm.repoId">
+              <a-select-option :value="val.id" v-for="(val,key) in facegroupArr" v-bind:key="key">
+                {{val.name}}
+              </a-select-option>
+            </a-select>
           </a-form-model-item>
           <a-form-model-item label="报警阀值">
             <a-slider v-model="addForm.rate" :min="1" :tooltipVisible="addVisible" />
@@ -123,8 +147,15 @@ const columns = [
 ]
 
 export default {
+  beforeRouteEnter (to, from, next) {
+    var ele = document.querySelectorAll('.file-main')
+    ele[0].style.backgroundColor = '#fff'
+
+    next()
+  },
   data () {
     return {
+      spinning: false,
       datalist: [],
       pageNum: 0,
       pageSize: 10,
@@ -144,11 +175,13 @@ export default {
         taskId: ''
       },
       typeArr: [ '实时rtsp视频流', '用户上传视频文件', '用户平台录像文件' ],
-      typeArr_search: [ '在线视频任务', '离线视频任务' ]
+      typeArr_search: [ '在线视频任务', '离线视频任务' ],
+      facegroupArr: []
     }
   },
   mounted () {
     this.getTasks()
+    this.facegroupArr = this.$store.state.facegroups
   },
   methods: {
     getTasks () {
@@ -164,16 +197,25 @@ export default {
       if (this.searchForm.taskId !== '') {
         params.taskId = this.searchForm.taskId
       }
+      this.spinning = true
       api.getTasks(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.datalist = this.datalist.concat(res.data.data)
-          this.pageNum = this.pageNum + 1
+          var tasks = res.data.data.map((value, index, array) => {
+            value.url = value.url.replace('http://172.16.44.101:8001', 'http://127.0.0.1:8001')
+            return value
+          })
+          this.datalist = this.datalist.concat(tasks)
+          this.pageNum = res.data.pageNum
+          this.pageSize = res.data.pageSize
           this.nextPageToken = res.data.nextPageToken || ''
           if (res.data.data.length && res.data.nextPageToken) {
             this.getTasks()
+          } else {
+            this.spinning = false
           }
         }
       }).catch(error => {
+        this.spinning = false
         console.log('error:')
         console.log(error)
       })
@@ -206,17 +248,28 @@ export default {
         repoId: this.addForm.repoId,
         rate: this.addForm.rate
       }
-      this.confirmLoading = true
+      this.spinning = true
       api.addTask(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          // {"taskId":"d751ac64-be01-4c01-aea9-3a8a80e537e3"}
-          this.datalist.unshift(res.data)
+          // this.datalist.unshift(res.data)
+          this.datalist = []
+          this.pageNum = 0
+          this.nextPageToken = ''
+          this.getTasks()
+
           this.addVisible = false
-          this.confirmLoading = false
+          this.spinning = false
+          this.addForm = {
+            type: '',
+            url: '',
+            name: '',
+            repoId: '',
+            rate: 1
+          }
           this.$message.success('任务创建成功')
         }
       }).catch(error => {
-        this.confirmLoading = false
+        this.spinning = false
         console.log(error.response)
         this.$message.error(error.response.data.message || '创建出错！')
       })
@@ -227,6 +280,7 @@ export default {
     searchHandleOk () {
       this.datalist = []
       this.pageNum = 0
+      this.nextPageToken = ''
       this.getTasks()
     },
     searchHandleReset (formName) {
@@ -270,5 +324,18 @@ export default {
 }
 .tableWrap {
   width: 100%;
+}
+.plusWrap {
+  display: block;
+  margin: 20px auto;
+  font-size: 50px;
+  color: #1890ff;
+}
+.desc {
+  color: #555;
+}
+.date {
+  font-size: .8em;
+  color: #aaa;
 }
 </style>

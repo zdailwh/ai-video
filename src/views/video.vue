@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="videoWrap">
     <div class="d-left">
       <div class="media-wrapper">
         <div class="media-player">
@@ -57,8 +57,8 @@
     </div>
     <div class="d-right">
       <a-tabs default-active-key="1" size="small" @change="callback">
-        <a-tab-pane key="1" tab="人脸识别">
-          <div class="searchWrap_video">
+        <a-tab-pane key="1" tab="人脸识别结果">
+          <!-- <div class="searchWrap_video">
             <a-form-model ref="searchForm" :model="searchForm" layout="inline">
               <a-form-model-item label="人脸">
                 <a-select v-model="searchForm.type" mode="multiple" :dropdownMatchSelectWidth="false">
@@ -74,11 +74,11 @@
                 <a-button type="primary" @click="searchHandleOk">搜索</a-button>
               </a-form-model-item>
             </a-form-model>
-          </div>
+          </div> -->
           <Face :taskresult="datalist" @videofixed="videoFixed" />
         </a-tab-pane>
-        <a-tab-pane key="2" tab="基本信息">
-          <Setting/>
+        <a-tab-pane key="2" tab="任务基本信息">
+          <Setting :taskinfo="task"/>
         </a-tab-pane>
       </a-tabs>
     </div>
@@ -90,13 +90,14 @@ import { TcPlayer } from 'tcplayer'
 import Setting from '../components/Setting'
 import Face from '../components/Face'
 export default {
+  beforeRouteEnter (to, from, next) {
+    next()
+  },
   components: { Setting, Face },
   data () {
     return {
-      datavideo: {
-        play_url: '../assets/demo.mp4'
-      },
       datalist: [],
+      task: {},
       taskId: '',
       searchForm: {
         type: ''
@@ -107,24 +108,60 @@ export default {
   mounted () {
     this.taskId = this.$route.params.taskId
     if (this.taskId) {
+      this.getTasks()
       this.getTaskResults()
     }
-
-    var widthPlayer = document.querySelector('#tcplayer').offsetWidth
-    this.widthPlayer = widthPlayer
-    this.heightPlayer = widthPlayer * 9 / 16
-    document.querySelector('#tcplayer').style.height = this.heightPlayer + 'px'
-    this.createPlayer()
+    var ele = document.querySelectorAll('.file-main')
+    if (ele.length) {
+      ele[0].style.backgroundColor = '#171819'
+    }
   },
   methods: {
+    getTasks () {
+      var params = {
+        taskId: this.taskId
+      }
+      api.getTasks(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          var task = res.data.data
+          task.url = task.url.replace('http://172.16.44.101:8001', 'http://127.0.0.1:8001')
+          this.task = task
+
+          var widthPlayer = document.querySelector('#tcplayer').offsetWidth
+          this.widthPlayer = widthPlayer
+          this.heightPlayer = widthPlayer * 9 / 16
+          document.querySelector('#tcplayer').style.height = this.heightPlayer + 'px'
+          this.createPlayer()
+        }
+      }).catch(error => {
+        console.log('error:')
+        console.log(error)
+      })
+    },
     getTaskResults () {
       var params = {
         taskId: this.taskId
       }
       api.getTaskResults(params).then(res => {
-        console.log(res)
         if (res.status >= 200 && res.status < 300) {
-          this.datalist = res.data || []
+          if (res.data.length) {
+            var copy = {}
+            res.data.map((value, index, array) => {
+              value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', 'http://127.0.0.1:8001')
+              if (Object.keys(copy).includes(value.faceId)) {
+                copy[value.faceId].times.push(value)
+              } else {
+                copy[value.faceId] = {
+                  name: value.name,
+                  fullUri: value.fullUri,
+                  times: [value]
+                }
+              }
+            })
+            console.log(copy)
+          }
+          // this.datalist = res.data || []
+          this.datalist = copy || {}
         }
       }).catch(error => {
         console.log('error:')
@@ -135,7 +172,7 @@ export default {
       console.log(key)
     },
     createPlayer () {
-      var url = this.datavideo.play_url
+      var url = this.task.url
 
       var player = new TcPlayer('tcplayer', {
         mp4: url,
@@ -194,6 +231,10 @@ export default {
 }
 </script>
 <style scoped>
+.videoWrap {
+  display: flex;
+  height: 100%;
+}
 .d-left {
   width: 50%;
   height: 100%;
@@ -203,6 +244,7 @@ export default {
   width: 50%;
   height: 100%;
   float: right;
+  overflow-y: hidden;
 }
 .media-wrapper {
   height: 50%;
@@ -417,5 +459,4 @@ input[type="text"], textarea {
 .searchWrap_video {
   margin-bottom: 15px;
 }
-
 </style>

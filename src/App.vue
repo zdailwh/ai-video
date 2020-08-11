@@ -3,8 +3,8 @@
     <div class="lager-layout">
       <div class="header">
         <div class="opt">
-          <div class="logo"><img src="./assets/logo_zght.png"><span class="logo_title">智能内容管理系统</span></div>
-          <div class="go_box"><div class="back"></div></div>
+          <div class="logo"><img src="./assets/ks_logo.png"><span class="logo_title">智能内容管理系统</span></div>
+          <!-- <div class="go_box"><div class="back"></div></div> -->
           <div class="go"></div>
         </div>
         <div class="opt mymenu" style="justify-content: center;">
@@ -15,7 +15,7 @@
           </a-menu>
         </div>
         <div class="opt" style="justify-content: flex-end;">
-          <div class="person-info">
+          <!-- <div class="person-info">
             <div class="avatar"><img src="./assets/user.png" alt=""></div>
             <div class="my-name">
               <span class="userName_title" title="" v-on:mouseover="showMenus=true">测试用户</span>
@@ -23,7 +23,7 @@
                 <li><span>退出登录</span></li>
               </ul>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
@@ -65,7 +65,7 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #171819;
+  /*background-color: #171819;*/
   overflow: hidden;
 }
 .header {
@@ -205,7 +205,7 @@ export default {
   flex: 1;
   display: flex;
   position: relative;
-  background-color: #171819;
+  /*background-color: #171819;*/
 }
 .file-page {
   width: 100%;
@@ -228,7 +228,7 @@ export default {
 .file-page .file-main {
   width: 100%;
   height: 100%;
-  background-color: #171819;
+  /*background-color: #171819;*/
   overflow: auto;
   padding: 0 0 0 0px;
 }
@@ -255,6 +255,9 @@ export default {
 }
 .desc-box .ant-descriptions-item-content {
   color: #a2a2a2;
+}
+.desc-box .ant-descriptions-row > th, .desc-box .ant-descriptions-row > td {
+  padding-bottom: 5px;
 }
 
 .d-right .ant-tabs {
@@ -289,5 +292,32 @@ export default {
 }
 .searchWrap_video .ant-select-selection--multiple .ant-select-selection__choice__remove {
   color: #989898;
+}
+
+.ant-card-cover {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-top: 75%;
+  overflow: hidden;
+}
+.taskContainer .ant-card-cover {
+  padding-top: 57% !important;
+}
+.ant-card-cover img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 100%;
+  height: auto;
+}
+.ant-card-cover video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 100%;
+  height: auto;
 }
 </style>
