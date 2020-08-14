@@ -237,10 +237,10 @@ export default {
 .mymenu .ant-menu {
   color: #a2a2a2;
 }
-.ant-menu-horizontal > .ant-menu-item > a {
+.mymenu .ant-menu-horizontal > .ant-menu-item > a {
   color: #a2a2a2;
 }
-.ant-menu-horizontal > .ant-menu-item-selected > a {
+.mymenu .ant-menu-horizontal > .ant-menu-item-selected > a {
   color: #1890ff;
 }
 .login-form .ant-input, .cut_catalog_dropdown .ant-input {

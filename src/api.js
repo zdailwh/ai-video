@@ -1,6 +1,9 @@
 import axios from 'axios'
-// axios.defaults.baseURL = '/apis'
-axios.defaults.baseURL = 'http://aicore.evereasycom.cn:8001'
+if (process.env.NODE_ENV === 'production') {
+  axios.defaults.baseURL = 'http://aicore.evereasycom.cn'
+} else {
+  axios.defaults.baseURL = 'apis'
+}
 
 export default {
   async addFacegroup (params) {

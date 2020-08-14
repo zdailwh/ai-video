@@ -89,6 +89,14 @@ import api from '../api'
 import { TcPlayer } from 'tcplayer'
 import Setting from '../components/Setting'
 import Face from '../components/Face'
+
+var assetsBaseurl = ''
+if (process.env.NODE_ENV === 'production') {
+  assetsBaseurl = 'http://aicore.evereasycom.cn:8001'
+} else {
+  assetsBaseurl = 'http://127.0.0.1:8001'
+}
+
 export default {
   beforeRouteEnter (to, from, next) {
     next()
@@ -124,7 +132,7 @@ export default {
       api.getTasks(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           var task = res.data.data
-          task.url = task.url.replace('http://172.16.44.101:8001', 'http://127.0.0.1:8001')
+          task.url = task.url.replace('http://172.16.44.101:8001', assetsBaseurl)
           this.task = task
 
           var widthPlayer = document.querySelector('#tcplayer').offsetWidth
@@ -147,7 +155,7 @@ export default {
           if (res.data.length) {
             var copy = {}
             res.data.map((value, index, array) => {
-              value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', 'http://127.0.0.1:8001')
+              value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
               if (Object.keys(copy).includes(value.faceId)) {
                 copy[value.faceId].times.push(value)
               } else {

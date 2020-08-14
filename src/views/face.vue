@@ -126,6 +126,13 @@ const columns = [
   }
 ]
 
+var assetsBaseurl = ''
+if (process.env.NODE_ENV === 'production') {
+  assetsBaseurl = 'http://aicore.evereasycom.cn:8001'
+} else {
+  assetsBaseurl = 'http://127.0.0.1:8001'
+}
+
 export default {
   beforeRouteEnter (to, from, next) {
     next()
@@ -176,7 +183,7 @@ export default {
       api.getFaces(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           var faces = res.data.faces.map((value, index, array) => {
-            value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', 'http://127.0.0.1:8001')
+            value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
             return value
           })
           this.datalist = this.datalist.concat(faces)
