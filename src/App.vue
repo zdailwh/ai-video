@@ -320,4 +320,26 @@ export default {
   max-width: 100%;
   height: auto;
 }
+
+/* 定位时显示详细信息 */
+.vcp-slider {
+  opacity: 1;
+}
+.absDetailWrap {
+  position: absolute;
+  top: 0;
+  left: 120%;
+  padding: 15px;
+  width: 250px;
+  height: 300px;
+  overflow-y: scroll;
+  font-size: 14px;
+  text-align: left;
+  background-color: #fff;
+  border-radius: 15px;
+  z-index: 9999;
+}
+.absDetailWrap p {
+  word-break: break-all;
+}
 </style>

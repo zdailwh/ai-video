@@ -4,7 +4,7 @@
       <div class="media-wrapper">
         <div class="media-player">
           <div class="playwrap">
-            <div id="tcplayer" />
+            <div id="tcplayer"></div>
             <!-- <video src="../assets/demo.mp4" textcaption="" fileid="655352622883841" filename="乘风破浪的姐姐20200616.mp4" filetype="video" commit="true" showcutbtn="1" operate="2" preload="auto" duration="4155" isready="1" style="width: auto; height: 100%; background: rgb(0, 0, 0); padding-top: 50px;" downloadfileid="655356197143552"></video> -->
 <!--             <div class="slider-wrapper"></div>
             <div class="progress-wrapper">
@@ -52,6 +52,12 @@
             </ul>
           </div> -->
 
+        </div>
+      </div>
+      <div class="locationDetailWrap">
+        <h4>人脸详情</h4>
+        <div class="locDetail">
+          <p v-for="(val, k) in taskResItem" v-bind:key="k"><label>{{k}}：</label>{{val.indexOf(':') !== -1 ? val.substring(0, val.indexOf(':')) : val}}</p>
         </div>
       </div>
     </div>
@@ -107,6 +113,7 @@ export default {
       datalist: [],
       task: {},
       taskId: '',
+      taskResItem: {},
       searchForm: {
         type: ''
       },
@@ -152,24 +159,10 @@ export default {
       }
       api.getTaskResults(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          if (res.data.length) {
-            var copy = {}
-            res.data.map((value, index, array) => {
-              value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
-              if (Object.keys(copy).includes(value.faceId)) {
-                copy[value.faceId].times.push(value)
-              } else {
-                copy[value.faceId] = {
-                  name: value.name,
-                  fullUri: value.fullUri,
-                  times: [value]
-                }
-              }
-            })
-            console.log(copy)
-          }
-          // this.datalist = res.data || []
-          this.datalist = copy || {}
+          res.data.map((value, index, array) => {
+            value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
+          })
+          this.datalist = res.data || []
         }
       }).catch(error => {
         console.log('error:')
@@ -234,6 +227,24 @@ export default {
       var time = parseInt(h * 3600) + parseInt(m * 60) + parseInt(s)
       // console.log(h + ':' + m + ':' + s + ':::' + time)
       window.player.currentTime(time)
+
+      console.log(params.item)
+      this.taskResItem = params.item
+      // var sliderThumb = document.querySelectorAll('.vcp-slider-thumb')[0]
+      // if (document.querySelectorAll('.absDetailWrap').length) {
+      //   document.querySelectorAll('.absDetailWrap')[0].remove()
+      // }
+      // var detailWrap = document.createElement('div')
+      // detailWrap.setAttribute('class', 'absDetailWrap')
+      // for (let key in params.item) {
+      //   var itemLine = document.createElement('p')
+      //   var val = params.item[key]
+      //   val = val.indexOf(':') !== -1 ? val.substring(0, val.indexOf(':')) : val
+      //   var cont = document.createTextNode(key + '：' + val)
+      //   itemLine.appendChild(cont)
+      //   detailWrap.appendChild(itemLine)
+      // }
+      // sliderThumb.appendChild(detailWrap)
     }
   }
 }
@@ -246,16 +257,13 @@ export default {
 .d-left {
   width: 50%;
   height: 100%;
-  float: left;
 }
 .d-right {
   width: 50%;
   height: 100%;
-  float: right;
   overflow-y: hidden;
 }
 .media-wrapper {
-  height: 50%;
   width: 100%;
   z-index: 1000;
   box-sizing: border-box;
@@ -263,7 +271,6 @@ export default {
 .media-wrapper .media-player {
   text-align: center;
   width: 100%;
-  height: 100%;
   position: relative;
 }
 .playwrap {
@@ -466,5 +473,29 @@ input[type="text"], textarea {
 }
 .searchWrap_video {
   margin-bottom: 15px;
+}
+
+.locationDetailWrap {
+  margin: 0 20px 20px;
+}
+.locationDetailWrap h4 {
+  font-size: 16px;
+  color: #fff;
+  font-weight: bold;
+  margin: 10px 0;
+}
+.locationDetailWrap .locDetail {
+  margin: 0 20px;
+}
+.locationDetailWrap .locDetail p {
+  color: #989898;
+  font-size: 14px;
+}
+.locationDetailWrap .locDetail p label {
+  display: inline-block;
+  text-align: right;
+  width: 80px;
+  color: #cecece;
+  margin-right: 10px;
 }
 </style>
