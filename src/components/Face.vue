@@ -1,5 +1,5 @@
 <template>
-  <div class="faceWrap">
+  <div class="faceWrap" :style="smalllayout? 'height: auto;': ''">
     <ul class="listWrap">
       <li class="list-item" v-for="(fItem,fId) in taskresult" v-bind:key="fId" @click="$emit('videofixed', { currentTime: fItem.time, item: fItem })">
         <div class="img-box">
@@ -21,7 +21,7 @@
 </template>
 <script>
 export default {
-  props: [ 'taskresult' ],
+  props: [ 'taskresult', 'smalllayout' ],
   data () {
     return {
       hideKey: [ 'faceId' ]
@@ -43,7 +43,7 @@ export default {
 </script>
 <style scoped>
 .faceWrap {
-  height: calc(100vh - 170px);
+  height: calc(100vh - 112px);
   overflow-y: scroll;
   padding: 0 10px;
 }

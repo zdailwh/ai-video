@@ -1,6 +1,6 @@
 <template>
-  <div class="videoWrap">
-    <div class="d-left">
+  <div class="videoWrap" :style="smallLayout? 'display: block;': ''">
+    <div class="d-left" :style="smallLayout? 'width: 100%;height: auto;': ''">
       <div class="media-wrapper">
         <div class="media-player">
           <div class="playwrap">
@@ -56,12 +56,12 @@
       </div>
       <div class="locationDetailWrap">
         <h4>人脸详情</h4>
-        <div class="locDetail">
+        <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
           <p v-for="(val, k) in taskResItem" v-bind:key="k"><label>{{k}}：</label>{{val.indexOf(':') !== -1 ? val.substring(0, val.indexOf(':')) : val}}</p>
         </div>
       </div>
     </div>
-    <div class="d-right">
+    <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
       <a-tabs default-active-key="1" size="small" @change="callback">
         <a-tab-pane key="1" tab="人脸识别结果">
           <!-- <div class="searchWrap_video">
@@ -81,7 +81,7 @@
               </a-form-model-item>
             </a-form-model>
           </div> -->
-          <Face :taskresult="datalist" @videofixed="videoFixed" />
+          <Face :taskresult="datalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="2" tab="任务基本信息">
           <Setting :taskinfo="task"/>
@@ -110,6 +110,7 @@ export default {
   components: { Setting, Face },
   data () {
     return {
+      smallLayout: false,
       datalist: [],
       task: {},
       taskId: '',
@@ -121,6 +122,11 @@ export default {
     }
   },
   mounted () {
+    var viewWidth = document.documentElement.clientWidth
+    if (viewWidth < 768) {
+      this.smallLayout = true
+    }
+
     this.taskId = this.$route.params.taskId
     if (this.taskId) {
       this.getTasks()
@@ -484,9 +490,6 @@ input[type="text"], textarea {
   font-weight: bold;
   margin: 10px 0;
 }
-.locationDetailWrap .locDetail {
-  margin: 0 20px;
-}
 .locationDetailWrap .locDetail p {
   color: #989898;
   font-size: 14px;
@@ -497,5 +500,9 @@ input[type="text"], textarea {
   width: 80px;
   color: #cecece;
   margin-right: 10px;
+}
+.locationDetailWrap .locDetail.inlineDetail {
+  display: flex;
+  flex-wrap: wrap;
 }
 </style>

@@ -1,15 +1,26 @@
 <template>
   <div class="faceGroupContainer">
+    <!--搜索-->
+    <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
+      <!-- <a-form-model ref="searchForm" :model="searchForm" layout="inline">
+        <a-form-model-item label="名称" prop="name">
+          <a-input v-model="searchForm.name" />
+        </a-form-model-item>
+        <a-form-model-item>
+          <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
+          <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
+        </a-form-model-item>
+      </a-form-model> -->
+      <div>
+        <a-button type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>添加人脸库</a-button>
+      </div>
+    </div>
+    <a-divider />
+    <!--搜索 end-->
     <div class="tableWrap">
       <a-spin :spinning="spinning">
-        <a-row :gutter="16">
-          <a-col :span="4">
-            <a-card style="border: 1px solid #1890ff;">
-              <p><a-icon type="plus-circle" class="plusWrap" title="新增人脸库" @click="addVisible = true" /></p>
-              <p style="color: #1890ff;font-size: 16px;text-align: center;">添加人脸库</p>
-            </a-card>
-          </a-col>
-          <a-col :span="4" style="padding-bottom: 15px;" v-for="(item, key) in datalist" :key="key">
+        <div class="cardList">
+          <div class="cardItem" v-for="(item, key) in datalist" :key="key">
             <a-card hoverable>
               <a-card-meta :title="item.name">
                 <template slot="description">
@@ -29,13 +40,13 @@
                 <router-link :to="'/face/' + item.id" title="查看人脸"><a-icon key="team" type="team" /></router-link>
               </template>
             </a-card>
-          </a-col>
-        </a-row>
+          </div>
+        </div>
       </a-spin>
     </div>
     <a-modal
       title="创建人脸库"
-      :visible="addVisible"
+      v-model="addVisible"
     >
       <div>
         <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
@@ -111,6 +122,7 @@ export default {
   },
   data () {
     return {
+      smallLayout: false,
       spinning: false,
       datalist: [],
       pageOffset: 0,
@@ -123,6 +135,9 @@ export default {
         name: '',
         description: '',
         group_type: ''
+      },
+      searchForm: {
+        name: ''
       }
     }
   },
@@ -135,6 +150,11 @@ export default {
   mounted () {
     var ele = document.querySelectorAll('.file-main')
     ele[0].style.backgroundColor = '#fff'
+
+    var viewWidth = document.documentElement.clientWidth
+    if (viewWidth < 540) {
+      this.smallLayout = true
+    }
 
     this.getFacegroups()
   },
@@ -220,6 +240,14 @@ export default {
         console.log(error.response)
         this.$message.error(error.response.data.message || '删除出错！')
       })
+    },
+    searchHandleOk () {
+      this.datalist = []
+      this.nextPageToken = ''
+      this.getFacegroups()
+    },
+    searchHandleReset (formName) {
+      this.$refs[formName].resetFields()
     }
   }
 }
@@ -234,17 +262,15 @@ export default {
 .tableWrap {
   width: 100%;
 }
-.plusWrap {
-  display: block;
-  margin: 20px auto;
-  font-size: 50px;
-  color: #1890ff;
-}
 .desc {
   color: #555;
 }
 .date {
   font-size: .8em;
   color: #aaa;
+}
+.searchWrap {
+  display: flex;
+  justify-content: space-between;
 }
 </style>

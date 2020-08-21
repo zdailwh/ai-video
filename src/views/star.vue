@@ -1,29 +1,17 @@
 <template>
   <div class="faceContainer">
     <!--搜索-->
-    <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
-      <!-- <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="任务类型" prop="type">
-          <a-select v-model="searchForm.type" :dropdownMatchSelectWidth="false">
-            <a-select-option value="">
-              全部
-            </a-select-option>
-            <a-select-option :value="key" v-for="(val,key) in typeArr_search" v-bind:key="key">
-              {{val}}
-            </a-select-option>
-          </a-select>
-        </a-form-model-item>
-        <a-form-model-item label="任务ID" prop="taskId">
-          <a-input v-model="searchForm.taskId" />
+    <div class="searchWrap">
+      <a-form-model ref="searchForm" :model="searchForm" layout="inline">
+        <a-form-model-item label="名称" prop="name">
+          <a-input v-model="searchForm.name" />
         </a-form-model-item>
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
         </a-form-model-item>
-      </a-form-model> -->
-      <div>
-        <a-button type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>添加人脸</a-button>
-      </div>
+      </a-form-model>
+      <a-button type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>添加名人</a-button>
     </div>
     <a-divider />
     <!--搜索 end-->
@@ -42,7 +30,7 @@
               <template slot="actions" class="ant-card-actions">
                 <a-icon key="edit" type="edit" title="编辑" />
                 <a-popconfirm
-                  title="确定要删除该人脸吗?"
+                  title="确定要删除该名人吗?"
                   ok-text="删除"
                   cancel-text="取消"
                   @confirm="delFace(item.id, key)"
@@ -56,8 +44,8 @@
       </a-spin>
     </div>
     <a-modal
-      title="创建人脸"
-      v-model="addVisible"
+      title="创建名人"
+      :visible="addVisible"
     >
       <div>
         <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
@@ -67,10 +55,10 @@
           <a-form-model-item label="描述">
             <a-input v-model="addForm.desc" />
           </a-form-model-item>
-          <!-- <a-form-model-item label="人脸库ID">
+          <!-- <a-form-model-item label="名人库ID">
             <a-input v-model="addForm.faceGroupId" />
           </a-form-model-item> -->
-          <a-form-model-item label="人脸图片">
+          <a-form-model-item label="名人图片">
             <a-upload
               list-type="picture"
               :beforeUpload="beforeUpload"
@@ -101,7 +89,7 @@ const columns = [
     key: 'id'
   },
   {
-    title: '人脸库ID',
+    title: '名人库ID',
     dataIndex: 'group_id',
     key: 'group_id'
   },
@@ -161,7 +149,6 @@ export default {
   },
   data () {
     return {
-      smallLayout: false,
       spinning: false,
       facegroupId: '',
       datalist: [],
@@ -175,6 +162,9 @@ export default {
         name: '',
         desc: '',
         faceBase64: ''
+      },
+      searchForm: {
+        name: ''
       }
     }
   },
@@ -188,12 +178,7 @@ export default {
     var ele = document.querySelectorAll('.file-main')
     ele[0].style.backgroundColor = '#fff'
 
-    var viewWidth = document.documentElement.clientWidth
-    if (viewWidth < 540) {
-      this.smallLayout = true
-    }
-
-    this.facegroupId = this.$route.params.facegroupId || ''
+    this.facegroupId = this.$route.params.facegroupId || '163a28d9-bc6c-44a3-832f-9f07939d2265'
 
     if (this.facegroupId) {
       this.getFaces()
@@ -230,7 +215,7 @@ export default {
     },
     handleOk (e) {
       if (this.facegroupId === '') {
-        this.$message.error('无效人脸库ID！')
+        this.$message.error('无效名人库ID！')
         return
       }
       if (this.addForm.name === '') {
@@ -242,7 +227,7 @@ export default {
         return
       }
       if (this.addForm.faceBase64 === '') {
-        this.$message.error('请上传人脸图片！')
+        this.$message.error('请上传名人图片！')
         return
       }
 
@@ -267,7 +252,7 @@ export default {
             desc: '',
             faceBase64: ''
           }
-          this.$message.success('人脸创建成功')
+          this.$message.success('名人创建成功')
         }
       }).catch(error => {
         this.spinning = false
@@ -300,12 +285,20 @@ export default {
       api.delFace(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.datalist.splice(idx, 1)
-          this.$message.success('人脸删除成功')
+          this.$message.success('名人删除成功')
         }
       }).catch(error => {
         console.log(error.response)
         this.$message.error(error.response.data.message || '删除出错！')
       })
+    },
+    searchHandleOk () {
+      this.datalist = []
+      this.nextPageToken = ''
+      this.getFaces()
+    },
+    searchHandleReset (formName) {
+      this.$refs[formName].resetFields()
     }
   }
 }
@@ -320,6 +313,7 @@ export default {
 .tableWrap {
   width: 100%;
 }
+
 .desc {
   color: #555;
 }
@@ -327,6 +321,7 @@ export default {
   font-size: .8em;
   color: #aaa;
 }
+
 .searchWrap {
   display: flex;
   justify-content: space-between;

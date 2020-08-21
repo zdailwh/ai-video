@@ -3,14 +3,12 @@
     <div class="lager-layout">
       <div class="header">
         <div class="opt">
-          <div class="logo"><img src="./assets/ks_logo.png"><span class="logo_title">智能内容管理系统</span></div>
-          <!-- <div class="go_box"><div class="back"></div></div> -->
-          <div class="go"></div>
+          <div class="logo"><img src="./assets/ks_logo.png"><span class="logo_title" v-show="smallLayout === false">智能内容管理系统</span></div>
         </div>
         <div class="opt mymenu" style="justify-content: center;">
-          <a-menu v-model="current" mode="horizontal">
-            <a-menu-item key="/facegroup"><router-link to="/facegroup">人脸库</router-link></a-menu-item>
-            <!-- <a-menu-item key="/face"><router-link to="/face">人脸</router-link></a-menu-item> -->
+          <a-menu theme="dark" v-model="current" mode="horizontal">
+            <!-- <a-menu-item key="/facegroup"><router-link to="/facegroup">人脸库</router-link></a-menu-item> -->
+            <a-menu-item key="/star"><router-link to="/star">名人库</router-link></a-menu-item>
             <a-menu-item key="/task"><router-link to="/task">任务</router-link></a-menu-item>
           </a-menu>
         </div>
@@ -45,12 +43,19 @@ export default {
   name: 'App',
   data: function () {
     return {
+      smallLayout: false,
       showMenus: false
     }
   },
   computed: {
     current () {
       return [this.$route.path]
+    }
+  },
+  mounted () {
+    var viewWidth = document.documentElement.clientWidth
+    if (viewWidth < 540) {
+      this.smallLayout = true
     }
   }
 }
@@ -76,17 +81,15 @@ export default {
   position: fixed;
   z-index: 1000;
   line-height: 60px;
-  padding: 0 40px 0 0;
+  padding: 0;
   align-self: center;
 }
 .header .opt {
   display: flex;
-  flex: 1;
 }
 .header .logo {
   display: flex;
   align-items: center;
-  width: 400px;
   cursor: pointer;
 }
 .header .logo img {
@@ -99,7 +102,8 @@ export default {
   display: inline-block;
   font-size: 20px;
   color: #acb0b7;
-  letter-spacing: 1px;
+  /*letter-spacing: 1px;*/
+  margin-right: 10px;
 }
 
 .mymenu .ant-menu-horizontal {
@@ -108,24 +112,6 @@ export default {
   border-bottom: none;
 }
 
-.header .opt .go_box {
-  display: flex;
-  justify-content: center;
-  margin-right: 20px;
-}
-.header .opt .go_box .back {
-  margin-top: 15px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background: url(./assets/back.png) no-repeat center center;
-  background-size: cover;
-  width: 34px;
-  height: 30px;
-  border-radius: 6px;
-  background-color: #464646;
-}
 .person-info {
   position: relative;
   display: flex;
@@ -234,7 +220,7 @@ export default {
 }
 
 /* 覆盖ant样式 */
-.mymenu .ant-menu {
+/*.mymenu .ant-menu {
   color: #a2a2a2;
 }
 .mymenu .ant-menu-horizontal > .ant-menu-item > a {
@@ -242,7 +228,7 @@ export default {
 }
 .mymenu .ant-menu-horizontal > .ant-menu-item-selected > a {
   color: #1890ff;
-}
+}*/
 .login-form .ant-input, .cut_catalog_dropdown .ant-input {
   background-color: #161616;
   border: 1px solid #3c3c3c;
@@ -319,6 +305,17 @@ export default {
   transform: translate(-50%, -50%);
   max-width: 100%;
   height: auto;
+}
+
+.cardList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.cardList .cardItem {
+  width: 200px;
+  height: auto;
+  margin: 5px;
 }
 
 /* 定位时显示详细信息 */

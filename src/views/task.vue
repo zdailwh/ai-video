@@ -1,6 +1,7 @@
 <template>
   <div class="taskContainer">
-    <!-- <div class="searchWrap">
+    <!--搜索-->
+    <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
         <a-form-model-item label="任务类型" prop="type">
           <a-select v-model="searchForm.type" :dropdownMatchSelectWidth="false">
@@ -16,22 +17,20 @@
           <a-input v-model="searchForm.taskId" />
         </a-form-model-item>
         <a-form-model-item>
-          <a-button type="primary" @click="searchHandleOk">搜索</a-button>
+          <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
           <a-button style="margin-left: 10px;" @click="searchHandleReset('searchForm')">重置</a-button>
         </a-form-model-item>
       </a-form-model>
+      <div>
+        <a-button type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>添加任务</a-button>
+      </div>
     </div>
-    <a-divider /> -->
+    <a-divider />
+    <!--搜索 end-->
     <div class="tableWrap">
       <a-spin :spinning="spinning">
-        <a-row :gutter="16">
-          <a-col :span="4">
-            <a-card style="border: 1px solid #1890ff;">
-              <p><a-icon type="plus-circle" class="plusWrap" title="新增任务" @click="addVisible = true" /></p>
-              <p style="color: #1890ff;font-size: 16px;text-align: center;">添加任务</p>
-            </a-card>
-          </a-col>
-          <a-col :span="4" style="padding-bottom: 15px;" v-for="(item, key) in datalist" :key="key">
+        <div class="cardList">
+          <div class="cardItem" v-for="(item, key) in datalist" :key="key">
             <a-card hoverable>
               <video slot="cover" :src="item.url"></video>
               <a-card-meta :title="item.name">
@@ -52,13 +51,13 @@
                 <router-link :to="'/video/' + item.id" title="查看任务结果"><a-icon type="solution" /></router-link>
               </template>
             </a-card>
-          </a-col>
-        </a-row>
+          </div>
+        </div>
       </a-spin>
     </div>
     <a-modal
       title="创建任务"
-      :visible="addVisible"
+      v-model="addVisible"
     >
       <div>
         <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
@@ -94,6 +93,18 @@
                 {{val.name}}
               </a-select-option>
             </a-select>
+            <div>
+              <template v-for="tag in taskStars">
+                <a-tooltip v-if="tag.length > 20" :key="tag" :title="tag">
+                  <a-tag :key="tag" :closable="true" @close="() => handleClose(tag)">
+                    {{ `${tag.slice(0, 20)}...` }}
+                  </a-tag>
+                </a-tooltip>
+                <a-tag v-else :key="tag" :closable="true" @close="() => handleClose(tag)">
+                  {{ tag }}
+                </a-tag>
+              </template>
+            </div>
           </a-form-model-item>
           <a-form-model-item label="报警阀值">
             <a-slider v-model="addForm.rate" :min="1" :tooltipVisible="addVisible" />
@@ -155,13 +166,11 @@ if (process.env.NODE_ENV === 'production') {
 
 export default {
   beforeRouteEnter (to, from, next) {
-    var ele = document.querySelectorAll('.file-main')
-    ele[0].style.backgroundColor = '#fff'
-
     next()
   },
   data () {
     return {
+      smallLayout: false,
       spinning: false,
       datalist: [],
       pageNum: 0,
@@ -183,10 +192,19 @@ export default {
       },
       typeArr: [ '实时rtsp视频流', '用户上传视频文件', '用户平台录像文件' ],
       typeArr_search: [ '在线视频任务', '离线视频任务' ],
-      facegroupArr: []
+      facegroupArr: [],
+      taskStars: ['Tag1', 'Tag2', 'tag3 tag3 tag3 tag3 tag3']
     }
   },
   mounted () {
+    var ele = document.querySelectorAll('.file-main')
+    ele[0].style.backgroundColor = '#fff'
+
+    var viewWidth = document.documentElement.clientWidth
+    if (viewWidth < 540) {
+      this.smallLayout = true
+    }
+
     this.getTasks()
     this.facegroupArr = this.$store.state.facegroups
   },
@@ -318,6 +336,11 @@ export default {
         console.log(error.response)
         this.$message.error(error.response.data.message || '删除出错！')
       })
+    },
+    starClose (removedTag) {
+      const taskStars = this.taskStars.filter(tag => tag !== removedTag)
+      console.log(taskStars)
+      this.taskStars = taskStars
     }
   }
 }
@@ -332,11 +355,9 @@ export default {
 .tableWrap {
   width: 100%;
 }
-.plusWrap {
-  display: block;
-  margin: 20px auto;
-  font-size: 50px;
-  color: #1890ff;
+.searchWrap {
+  display: flex;
+  justify-content: space-between;
 }
 .desc {
   color: #555;

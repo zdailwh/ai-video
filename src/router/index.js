@@ -6,6 +6,7 @@ import Login from '@/views/login'
 import Facegroup from '@/views/facegroup'
 import Face from '@/views/face'
 import Task from '@/views/task'
+import Star from '@/views/star'
 
 Vue.use(Router)
 
@@ -13,7 +14,7 @@ export default new Router({
   routes: [
     {
       path: '/',
-      redirect: '/facegroup'
+      redirect: '/star'
     },
     {
       path: '/index',
@@ -44,6 +45,11 @@ export default new Router({
       path: '/login',
       name: 'Login',
       component: Login
+    },
+    {
+      path: '/star',
+      name: 'Star',
+      component: Star
     }
   ]
 })
