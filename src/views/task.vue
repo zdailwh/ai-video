@@ -57,6 +57,7 @@
     </div>
     <a-modal
       title="创建任务"
+      width="700px"
       v-model="addVisible"
     >
       <div>
@@ -93,21 +94,57 @@
                 {{val.name}}
               </a-select-option>
             </a-select>
-            <div>
-              <template v-for="tag in taskStars">
-                <a-tooltip v-if="tag.length > 20" :key="tag" :title="tag">
-                  <a-tag :key="tag" :closable="true" @close="() => handleClose(tag)">
-                    {{ `${tag.slice(0, 20)}...` }}
-                  </a-tag>
-                </a-tooltip>
-                <a-tag v-else :key="tag" :closable="true" @close="() => handleClose(tag)">
-                  {{ tag }}
-                </a-tag>
-              </template>
-            </div>
           </a-form-model-item>
           <a-form-model-item label="报警阀值">
-            <a-slider v-model="addForm.rate" :min="1" :tooltipVisible="addVisible" />
+            <a-slider v-model="addForm.rate" :min="1" />
+          </a-form-model-item>
+          <a-form-model-item label="选择名人" :wrapperCol="{span: 20}">
+            <a-transfer
+              :data-source="mockData"
+              :filter-option="filterOption"
+              :showSelectAll="false"
+              :showSearch="true"
+              :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
+              :titles="['名人库', '目标']"
+              :target-keys="targetKeys"
+              :selected-keys="selectedKeys"
+              :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
+              @change="handleChange"
+              @selectChange="handleSelectChange">
+              <template
+                slot="children"
+                slot-scope="{
+                  props: { direction, filteredItems, selectedKeys, disabled: listDisabled },
+                  on: { itemSelectAll, itemSelect },
+                }"
+              >
+                <a-table
+                  :row-selection="
+                    getRowSelection({ disabled: listDisabled, selectedKeys, itemSelectAll, itemSelect })
+                  "
+                  :columns="direction === 'left' ? leftColumns : rightColumns"
+                  :data-source="filteredItems"
+                  :pagination="false"
+                  size="small"
+                  :style="{ pointerEvents: listDisabled ? 'none' : null }"
+                  :custom-row="
+                    ({ key, disabled: itemDisabled }) => ({
+                      on: {
+                        click: () => {
+                          if (itemDisabled || listDisabled) return;
+                          itemSelect(key, !selectedKeys.includes(key));
+                        },
+                      },
+                    })
+                  "
+                >
+                <template slot="fullUri" slot-scope="url">
+                  <img :src="url" style="max-width: 50px;max-height: 50px;">
+                </template>
+                </a-table>
+              </template>
+            </a-transfer>
+
           </a-form-model-item>
         </a-form-model>
       </div>
@@ -123,6 +160,7 @@
   </div>
 </template>
 <script>
+import difference from 'lodash/difference'
 import api from '../api'
 const columns = [
   {
@@ -164,6 +202,63 @@ if (process.env.NODE_ENV === 'production') {
   assetsBaseurl = 'http://127.0.0.1:8001'
 }
 
+var stars = [
+  {
+    create_time: '2020-08-24T07:04:42.427Z',
+    description: '',
+    fullUri: 'http://127.0.0.1:8001/v5/resources/data?uri=weed%3A%2F%2F144%2C471969fe6405&contentType=image/jpeg',
+    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
+    key: '90-AAABdB9IjLv0dekZAAAAAQ==',
+    id: '90-AAABdB9IjLv0dekZAAAAAQ==',
+    title: '张雨绮'
+  },
+  {
+    create_time: '2020-08-11T05:02:14.281Z',
+    description: '宁静',
+    fullUri: 'http://127.0.0.1:8001/v5/resources/data?uri=weed%3A%2F%2F144%2C4352571660c3&contentType=image/jpeg',
+    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
+    key: '90-AAABc9vlwQmo265QAAAAAg==',
+    id: '90-AAABc9vlwQmo265QAAAAAg==',
+    title: '宁静'
+  },
+  {
+    create_time: '2020-08-11T05:01:52.489Z',
+    description: '王丽坤',
+    fullUri: 'http://127.0.0.1:8001/v5/resources/data?uri=weed%3A%2F%2F144%2C43519628c0bf&contentType=image/jpeg',
+    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
+    key: '90-AAABc9vla-mo265PAAAAAQ==',
+    id: '90-AAABc9vla-mo265PAAAAAQ==',
+    title: '王丽坤'
+  },
+  {
+    create_time: '2020-08-11T03:24:19.131Z',
+    description: '万茜',
+    fullUri: 'http://127.0.0.1:8001/v5/resources/data?uri=weed%3A%2F%2F144%2C414a71ea9af6&contentType=image/jpeg',
+    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
+    key: '90-AAABc9uMGzuo265MAAAAAg==',
+    id: '90-AAABc9uMGzuo265MAAAAAg==',
+    title: '万茜'
+  }
+]
+
+const leftTableColumns = [
+  {
+    dataIndex: 'title',
+    title: '姓名'
+  },
+  {
+    dataIndex: 'fullUri',
+    title: '头像',
+    width: '50px',
+    scopedSlots: { customRender: 'fullUri' }
+  }
+]
+const rightTableColumns = [
+  {
+    dataIndex: 'title',
+    title: '姓名'
+  }
+]
 export default {
   beforeRouteEnter (to, from, next) {
     next()
@@ -193,7 +288,11 @@ export default {
       typeArr: [ '实时rtsp视频流', '用户上传视频文件', '用户平台录像文件' ],
       typeArr_search: [ '在线视频任务', '离线视频任务' ],
       facegroupArr: [],
-      taskStars: ['Tag1', 'Tag2', 'tag3 tag3 tag3 tag3 tag3']
+      mockData: stars,
+      targetKeys: [],
+      selectedKeys: [],
+      leftColumns: leftTableColumns,
+      rightColumns: rightTableColumns
     }
   },
   mounted () {
@@ -205,7 +304,7 @@ export default {
       this.smallLayout = true
     }
 
-    this.getTasks()
+    // this.getTasks()
     this.facegroupArr = this.$store.state.facegroups
   },
   methods: {
@@ -337,13 +436,43 @@ export default {
         this.$message.error(error.response.data.message || '删除出错！')
       })
     },
-    starClose (removedTag) {
-      const taskStars = this.taskStars.filter(tag => tag !== removedTag)
-      console.log(taskStars)
-      this.taskStars = taskStars
+    handleChange (nextTargetKeys, direction, moveKeys) {
+      this.targetKeys = nextTargetKeys
+
+      console.log('targetKeys: ', nextTargetKeys)
+      console.log('direction: ', direction)
+      console.log('moveKeys: ', moveKeys)
+    },
+    handleSelectChange (sourceSelectedKeys, targetSelectedKeys) {
+      this.selectedKeys = [...sourceSelectedKeys, ...targetSelectedKeys]
+
+      console.log('sourceSelectedKeys: ', sourceSelectedKeys)
+      console.log('targetSelectedKeys: ', targetSelectedKeys)
+    },
+    filterOption (inputValue, option) {
+      return option.title.indexOf(inputValue) > -1
+    },
+    getRowSelection ({ disabled, selectedKeys, itemSelectAll, itemSelect }) {
+      return {
+        getCheckboxProps: item => ({ props: { disabled: disabled || item.disabled } }),
+        onSelectAll (selected, selectedRows) {
+          const treeSelectedKeys = selectedRows
+            .filter(item => !item.disabled)
+            .map(({ key }) => key)
+          const diffKeys = selected
+            ? difference(treeSelectedKeys, selectedKeys)
+            : difference(selectedKeys, treeSelectedKeys)
+          itemSelectAll(diffKeys, selected)
+        },
+        onSelect ({ key }, selected) {
+          itemSelect(key, selected)
+        },
+        selectedRowKeys: selectedKeys
+      }
     }
   }
 }
+
 </script>
 <style scoped>
 .taskContainer {

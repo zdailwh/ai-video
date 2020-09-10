@@ -339,4 +339,12 @@ export default {
 .absDetailWrap p {
   word-break: break-all;
 }
+/*穿梭框*/
+.ant-transfer-customize-list {
+  flex-wrap: wrap;
+}
+.ant-transfer-list-body-customize-wrapper {
+  height: calc(260px - 40px - 44px);
+  overflow-y: scroll;
+}
 </style>

@@ -36,6 +36,19 @@ export default {
       faceGroupId: params.faceGroupId,
       name: params.name,
       desc: params.desc,
+      sex: params.sex,
+      birthday: params.birthday,
+      faceBase64: params.faceBase64
+    })
+    return res
+  },
+
+  async editFace (params) {
+    var res = await axios.put('/api/v1/face/' + params.id, {
+      name: params.name,
+      desc: params.desc,
+      sex: params.sex,
+      birthday: params.birthday,
       faceBase64: params.faceBase64
     })
     return res
@@ -47,13 +60,17 @@ export default {
   },
 
   async getFaces (params) {
+    var opts = {
+      pageOffset: params.pageOffset,
+      pageSize: params.pageSize,
+      nextPageToken: params.nextPageToken,
+      faceGroupId: params.faceGroupId
+    }
+    if (params.name) {
+      opts.name = params.name
+    }
     var res = await axios.get('/api/v1/face', {
-      params: {
-        pageOffset: params.pageOffset,
-        pageSize: params.pageSize,
-        nextPageToken: params.nextPageToken,
-        faceGroupId: params.faceGroupId
-      }
+      params: opts
     })
     return res
   },
