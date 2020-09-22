@@ -22,7 +22,7 @@
         </a-form-model-item>
       </a-form-model>
       <div>
-        <a-button type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>添加任务</a-button>
+        <a-button type="primary" @click="addVisible = true;targetKeys = []"><a-icon key="plus" type="plus"/>添加任务</a-button>
       </div>
     </div>
     <a-divider />
@@ -36,25 +36,52 @@
               <a-card-meta :title="item.name">
                 <template slot="description">
                   <p class="desc">{{item.description}}</p>
-                  <p class="date">({{item.status}})</p>
+                  <p style="display: flex;justify-content: space-between;align-items: center;">
+                    <span style="color: #87d068;">{{item.status === 0? '新建': item.status === 1? '进行中': '完成'}}</span>
+                    <a-button type="link" style="padding: 0;"><router-link :to="'/video/' + item.id">查看任务结果<a-icon type="right" /></router-link></a-button>
+                  </p>
                 </template>
               </a-card-meta>
               <template slot="actions" class="ant-card-actions">
+                <a-button type="link" icon="edit" title="编辑" :disabled="item.status === 1" @click="toEdit(item, key, 'edit')" />
                 <a-popconfirm
                   title="确定要删除该任务吗?"
                   ok-text="删除"
                   cancel-text="取消"
                   @confirm="delTask(item.id, key)"
                 >
-                  <a-icon key="delete" type="delete" title="删除" />
+                  <a-button type="link" icon="delete" title="删除" :disabled="item.status === 1" />
                 </a-popconfirm>
-                <router-link :to="'/video/' + item.id" title="查看任务结果"><a-icon type="solution" /></router-link>
+                <a-button type="link" icon="copy" title="复制" @click="toEdit(item, key, 'copy')" />
+                <!-- <router-link :to="'/video/' + item.id" title="查看任务结果"><a-icon type="solution" /></router-link> -->
+                <template v-if="item.status === 1">
+                  <a-popconfirm
+                    title="确定要停止该任务吗?"
+                    ok-text="停止"
+                    cancel-text="取消"
+                    @confirm="stop(item.id, key)"
+                  >
+                    <a-button type="link" icon="stop" title="停止" />
+                  </a-popconfirm>
+                </template>
+                <template v-else>
+                  <a-popconfirm
+                    title="确定要执行该任务吗?"
+                    ok-text="执行"
+                    cancel-text="取消"
+                    @confirm="start(item.id, key)"
+                  >
+                    <a-button type="link" icon="play-circle" title="执行" />
+                  </a-popconfirm>
+                </template>
+
               </template>
             </a-card>
           </div>
         </div>
       </a-spin>
     </div>
+
     <a-modal
       title="创建任务"
       width="700px"
@@ -88,16 +115,16 @@
           <!-- <a-form-model-item label="人脸库ID">
             <a-input v-model="addForm.repoId" />
           </a-form-model-item> -->
-          <a-form-model-item label="人脸库">
+          <!-- <a-form-model-item label="人脸库">
             <a-select v-model="addForm.repoId">
               <a-select-option :value="val.id" v-for="(val,key) in facegroupArr" v-bind:key="key">
                 {{val.name}}
               </a-select-option>
             </a-select>
-          </a-form-model-item>
-          <a-form-model-item label="报警阀值">
+          </a-form-model-item> -->
+          <!-- <a-form-model-item label="报警阀值">
             <a-slider v-model="addForm.rate" :min="1" />
-          </a-form-model-item>
+          </a-form-model-item> -->
           <a-form-model-item label="选择名人" :wrapperCol="{span: 20}">
             <a-transfer
               :data-source="mockData"
@@ -124,7 +151,7 @@
                   "
                   :columns="direction === 'left' ? leftColumns : rightColumns"
                   :data-source="filteredItems"
-                  :pagination="false"
+                  :pagination="{ pageSize: 10 }"
                   size="small"
                   :style="{ pointerEvents: listDisabled ? 'none' : null }"
                   :custom-row="
@@ -157,11 +184,119 @@
         </a-button>
       </template>
     </a-modal>
+
+    <a-modal
+      :title="editTag === 'edit'? '编辑任务': '创建任务'"
+      width="700px"
+      v-model="editVisible"
+    >
+      <div>
+        <a-form-model :model="editForm" :label-col="{span:4}" :wrapper-col="{span:14}">
+          <a-form-model-item label="任务类型">
+            <a-select v-model="editForm.type">
+              <a-select-option :value="key" v-for="(val,key) in typeArr" v-bind:key="key">
+                {{val}}
+              </a-select-option>
+            </a-select>
+          </a-form-model-item>
+          <a-form-model-item label="上传视频" v-if="editForm.type === 1">
+            <a-upload
+              list-type="picture"
+              action="/apis/api/v1/upload/file"
+              name="videoFile"
+              @change="uploadVideoChange"
+            >
+              <a-button> <a-icon type="upload" /> 选择视频文件 </a-button>
+            </a-upload>
+          </a-form-model-item>
+          <a-form-model-item label="任务地址">
+            <a-input v-model="editForm.url" :disabled="editForm.type === 1" />
+          </a-form-model-item>
+          <a-form-model-item label="任务名称">
+            <a-input v-model="editForm.name" />
+          </a-form-model-item>
+          <!-- <a-form-model-item label="人脸库ID">
+            <a-input v-model="editForm.repoId" />
+          </a-form-model-item> -->
+          <!-- <a-form-model-item label="人脸库">
+            <a-select v-model="editForm.repoId">
+              <a-select-option :value="val.id" v-for="(val,key) in facegroupArr" v-bind:key="key">
+                {{val.name}}
+              </a-select-option>
+            </a-select>
+          </a-form-model-item> -->
+          <!-- <a-form-model-item label="报警阀值">
+            <a-slider v-model="editForm.rate" :min="1" />
+          </a-form-model-item> -->
+          <a-form-model-item label="选择名人" :wrapperCol="{span: 20}">
+            <a-transfer
+              :data-source="mockData"
+              :filter-option="filterOption"
+              :showSelectAll="false"
+              :showSearch="true"
+              :locale="{ itemUnit: '项', itemsUnit: '项', notFoundContent: '列表为空', searchPlaceholder: '请输入搜索内容' }"
+              :titles="['名人库', '目标']"
+              :target-keys="targetKeys"
+              :selected-keys="selectedKeys"
+              :list-style="{width: smallLayout?'100%':'200px', height: '260px'}"
+              @change="handleChange"
+              @selectChange="handleSelectChange">
+              <template
+                slot="children"
+                slot-scope="{
+                  props: { direction, filteredItems, selectedKeys, disabled: listDisabled },
+                  on: { itemSelectAll, itemSelect },
+                }"
+              >
+                <a-table
+                  :row-selection="
+                    getRowSelection({ disabled: listDisabled, selectedKeys, itemSelectAll, itemSelect })
+                  "
+                  :columns="direction === 'left' ? leftColumns : rightColumns"
+                  :data-source="filteredItems"
+                  :pagination="{ pageSize: 10 }"
+                  size="small"
+                  :style="{ pointerEvents: listDisabled ? 'none' : null }"
+                  :custom-row="
+                    ({ key, disabled: itemDisabled }) => ({
+                      on: {
+                        click: () => {
+                          if (itemDisabled || listDisabled) return;
+                          itemSelect(key, !selectedKeys.includes(key));
+                        },
+                      },
+                    })
+                  "
+                >
+                <template slot="fullUri" slot-scope="url">
+                  <img :src="url" style="max-width: 50px;max-height: 50px;">
+                </template>
+                </a-table>
+              </template>
+            </a-transfer>
+
+          </a-form-model-item>
+        </a-form-model>
+      </div>
+      <template slot="footer">
+        <a-button key="back" @click="handleCancel_edit">
+          取消
+        </a-button>
+        <a-button key="submit" type="primary" :loading="editLoading" @click="handleEdit">
+          {{editTag === 'edit'? '更新': '创建'}}
+        </a-button>
+      </template>
+    </a-modal>
+
   </div>
 </template>
 <script>
 import difference from 'lodash/difference'
 import api from '../api'
+import nj from '../assets/u3.jpg'
+import zyq from '../assets/u1.png'
+import wlk from '../assets/u5.jpg'
+import wq from '../assets/u4.jpg'
 const columns = [
   {
     title: 'ID',
@@ -195,18 +330,18 @@ const columns = [
   }
 ]
 
-var assetsBaseurl = ''
-if (process.env.NODE_ENV === 'production') {
-  assetsBaseurl = 'http://aicore.evereasycom.cn:8001'
-} else {
-  assetsBaseurl = 'http://127.0.0.1:8001'
-}
+// var assetsBaseurl = ''
+// if (process.env.NODE_ENV === 'production') {
+//   assetsBaseurl = 'http://aicore.evereasycom.cn:8001'
+// } else {
+//   assetsBaseurl = 'http://127.0.0.1:8001'
+// }
 
 var stars = [
   {
     create_time: '2020-08-24T07:04:42.427Z',
     description: '',
-    fullUri: 'http://127.0.0.1:8001/v5/resources/data?uri=weed%3A%2F%2F144%2C471969fe6405&contentType=image/jpeg',
+    fullUri: zyq,
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABdB9IjLv0dekZAAAAAQ==',
     id: '90-AAABdB9IjLv0dekZAAAAAQ==',
@@ -215,7 +350,7 @@ var stars = [
   {
     create_time: '2020-08-11T05:02:14.281Z',
     description: '宁静',
-    fullUri: 'http://127.0.0.1:8001/v5/resources/data?uri=weed%3A%2F%2F144%2C4352571660c3&contentType=image/jpeg',
+    fullUri: nj,
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABc9vlwQmo265QAAAAAg==',
     id: '90-AAABc9vlwQmo265QAAAAAg==',
@@ -224,7 +359,7 @@ var stars = [
   {
     create_time: '2020-08-11T05:01:52.489Z',
     description: '王丽坤',
-    fullUri: 'http://127.0.0.1:8001/v5/resources/data?uri=weed%3A%2F%2F144%2C43519628c0bf&contentType=image/jpeg',
+    fullUri: wlk,
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABc9vla-mo265PAAAAAQ==',
     id: '90-AAABc9vla-mo265PAAAAAQ==',
@@ -233,7 +368,7 @@ var stars = [
   {
     create_time: '2020-08-11T03:24:19.131Z',
     description: '万茜',
-    fullUri: 'http://127.0.0.1:8001/v5/resources/data?uri=weed%3A%2F%2F144%2C414a71ea9af6&contentType=image/jpeg',
+    fullUri: wq,
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABc9uMGzuo265MAAAAAg==',
     id: '90-AAABc9uMGzuo265MAAAAAg==',
@@ -292,7 +427,14 @@ export default {
       targetKeys: [],
       selectedKeys: [],
       leftColumns: leftTableColumns,
-      rightColumns: rightTableColumns
+      rightColumns: rightTableColumns,
+      editForm: {
+      },
+      editLoading: false,
+      editItem: {},
+      editKey: '',
+      editVisible: false,
+      editTag: '' // 'edit' || 'copy'
     }
   },
   mounted () {
@@ -304,7 +446,7 @@ export default {
       this.smallLayout = true
     }
 
-    // this.getTasks()
+    this.getTasks()
     this.facegroupArr = this.$store.state.facegroups
   },
   methods: {
@@ -323,20 +465,23 @@ export default {
       }
       this.spinning = true
       api.getTasks(params).then(res => {
+        console.log(res)
         if (res.status >= 200 && res.status < 300) {
-          var tasks = res.data.data.map((value, index, array) => {
-            value.url = value.url.replace('http://172.16.44.101:8001', assetsBaseurl)
-            return value
-          })
-          this.datalist = this.datalist.concat(tasks)
-          this.pageNum = res.data.pageNum
-          this.pageSize = res.data.pageSize
-          this.nextPageToken = res.data.nextPageToken || ''
-          if (res.data.data.length && res.data.nextPageToken) {
-            this.getTasks()
-          } else {
-            this.spinning = false
-          }
+          // var tasks = res.data.data.map((value, index, array) => {
+          //   value.url = value.url.replace('http://172.16.44.101:8001', assetsBaseurl)
+          //   return value
+          // })
+          // this.datalist = this.datalist.concat(tasks)
+          // this.pageNum = res.data.pageNum
+          // this.pageSize = res.data.pageSize
+          // this.nextPageToken = res.data.nextPageToken || ''
+          // if (res.data.data.length && res.data.nextPageToken) {
+          //   this.getTasks()
+          // } else {
+          //   this.spinning = false
+          // }
+          this.datalist = this.datalist.concat(res.data.data)
+          this.spinning = false
         }
       }).catch(error => {
         this.spinning = false
@@ -357,14 +502,14 @@ export default {
         this.$message.error('请填写任务名称！')
         return
       }
-      if (this.addForm.repoId === '') {
-        this.$message.error('请填写布控人脸库ID！')
-        return
-      }
-      if (this.addForm.rate === '') {
-        this.$message.error('请填写报警阀值！')
-        return
-      }
+      // if (this.addForm.repoId === '') {
+      //   this.$message.error('请填写布控人脸库ID！')
+      //   return
+      // }
+      // if (this.addForm.rate === '') {
+      //   this.$message.error('请填写报警阀值！')
+      //   return
+      // }
       var params = {
         type: this.addForm.type,
         url: this.addForm.url + '',
@@ -469,6 +614,48 @@ export default {
         },
         selectedRowKeys: selectedKeys
       }
+    },
+    toEdit (item, key, tag) {
+      this.editTag = tag
+      this.editVisible = true
+      this.editItem = item
+      this.editKey = key
+      this.editForm = item
+      this.targetKeys = ['90-AAABc9vlwQmo265QAAAAAg==', '90-AAABc9uMGzuo265MAAAAAg==']
+    },
+    handleCancel_edit () {
+      this.editVisible = false
+      this.editForm = {}
+      this.editItem = {}
+      this.editKey = ''
+    },
+    handleEdit () {
+      var params = {
+      }
+      this.editLoading = true
+      api.editTask(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist.splice(this.editKey, 1, res.data)
+          // this.datalist = []
+          // this.nextPageToken = ''
+          // this.getFaces()
+
+          this.editVisible = false
+          this.editLoading = false
+          this.editForm = {}
+          this.$message.success('任务编辑成功')
+        }
+      }).catch(error => {
+        this.editLoading = false
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '编辑出错！')
+      })
+    },
+    start (item, key) {
+      this.datalist[key].status = 1
+    },
+    stop (item, key) {
+      this.datalist[key].status = 2
     }
   }
 }

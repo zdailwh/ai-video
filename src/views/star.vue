@@ -12,7 +12,7 @@
         </a-form-model-item>
       </a-form-model>
       <div>
-        <a-button type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>添加名人</a-button>
+        <a-button type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>添加明星</a-button>
         <a-button type="primary" @click="importVisible = true"><a-icon key="import" type="import"/>批量导入</a-button>
       </div>
     </div>
@@ -23,22 +23,24 @@
         <div class="cardList">
           <div class="cardItem" v-for="(item, key) in datalist" :key="key">
             <a-card hoverable>
-              <img slot="cover" alt="example" :src="item.fullUri" />
+              <!-- <img slot="cover" alt="example" :src="item.fullUri" /> -->
+              <img slot="cover" alt="example" src="../assets/u1.png" />
               <a-card-meta :title="item.name">
                 <template slot="description">
+                  <p class="desc">{{item.sex === 1? '男': '女'}}</p>
                   <p class="desc">{{item.description}}</p>
                   <p class="date">({{item.create_time | dateFormat}})</p>
                 </template>
               </a-card-meta>
               <template slot="actions" class="ant-card-actions">
-                <a-icon key="edit" type="edit" title="编辑" @click="toEdit(item, key)" />
+                <a-button type="link" icon="edit" title="编辑" @click="toEdit(item, key)" />
                 <a-popconfirm
-                  title="确定要删除该名人吗?"
+                  title="确定要删除该明星吗?"
                   ok-text="删除"
                   cancel-text="取消"
                   @confirm="delFace(item.id, key)"
                 >
-                  <a-icon key="delete" type="delete" title="删除" />
+                  <a-button type="link" icon="delete" title="删除" />
                 </a-popconfirm>
               </template>
             </a-card>
@@ -46,9 +48,9 @@
         </div>
       </a-spin>
     </div>
-    <!--创建名人-->
+    <!--创建明星-->
     <a-modal
-      title="创建名人"
+      title="创建明星"
       v-model="addVisible"
     >
       <div>
@@ -58,13 +60,13 @@
           </a-form-model-item>
           <a-form-model-item label="性别">
             <a-radio-group name="sex" v-model="addForm.sex">
-              <a-radio value="男">男</a-radio><a-radio value="女">女</a-radio>
+              <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
             </a-radio-group>
           </a-form-model-item>
           <a-form-model-item label="出生日期">
             <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="addForm.birthday" />
           </a-form-model-item>
-          <a-form-model-item label="名人图片">
+          <a-form-model-item label="明星图片">
             <a-upload
               list-type="picture-card"
               :beforeUpload="beforeUpload_add"
@@ -92,9 +94,9 @@
         </a-button>
       </template>
     </a-modal>
-    <!--编辑名人-->
+    <!--编辑明星-->
     <a-modal
-      title="编辑名人"
+      title="编辑明星"
       v-model="editVisible"
     >
       <div>
@@ -104,13 +106,13 @@
           </a-form-model-item>
           <a-form-model-item label="性别">
             <a-radio-group name="sex" v-model="editForm.sex">
-              <a-radio value="男">男</a-radio><a-radio value="女">女</a-radio>
+              <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
             </a-radio-group>
           </a-form-model-item>
           <a-form-model-item label="出生日期">
             <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="editForm.birthday" />
           </a-form-model-item>
-          <a-form-model-item label="名人图片">
+          <a-form-model-item label="明星图片">
             <a-upload
               list-type="picture-card"
               :beforeUpload="beforeUpload_edit"
@@ -134,7 +136,7 @@
           取消
         </a-button>
         <a-button key="submit" type="primary" :loading="editLoading" @click="handleEdit">
-          创建
+          更新
         </a-button>
       </template>
     </a-modal>
@@ -149,7 +151,7 @@
     >
       <div>
         <a-form-model :model="importForm" :label-col="{span:8}" :wrapper-col="{span:16}">
-          <a-form-model-item label="名人压缩文件">
+          <a-form-model-item label="明星压缩文件">
             <a-upload
               list-type="picture"
               :beforeUpload="beforeImport"
@@ -179,11 +181,6 @@ const columns = [
     title: 'ID',
     dataIndex: 'id',
     key: 'id'
-  },
-  {
-    title: '名人库ID',
-    dataIndex: 'group_id',
-    key: 'group_id'
   },
   {
     title: '名称',
@@ -228,12 +225,12 @@ const columns = [
   }
 ]
 
-var assetsBaseurl = ''
-if (process.env.NODE_ENV === 'production') {
-  assetsBaseurl = 'http://aicore.evereasycom.cn:8001'
-} else {
-  assetsBaseurl = 'http://127.0.0.1:8001'
-}
+// var assetsBaseurl = ''
+// if (process.env.NODE_ENV === 'production') {
+//   assetsBaseurl = 'http://aicore.evereasycom.cn:8001'
+// } else {
+//   assetsBaseurl = 'http://127.0.0.1:8001'
+// }
 
 export default {
   beforeRouteEnter (to, from, next) {
@@ -252,7 +249,7 @@ export default {
       columns,
       addForm: {
         name: '',
-        sex: '男',
+        sex: 1,
         birthday: '',
         faceBase64: ''
       },
@@ -323,17 +320,8 @@ export default {
       this.spinning = true
       api.getFaces(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          var faces = res.data.faces.map((value, index, array) => {
-            value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
-            return value
-          })
-          this.datalist = this.datalist.concat(faces)
-          this.nextPageToken = res.data.nextPageToken || ''
-          if (res.data.faces.length && res.data.nextPageToken) {
-            this.getFaces()
-          } else {
-            this.spinning = false
-          }
+          this.datalist = this.datalist.concat(res.data.data)
+          this.spinning = false
         }
       }).catch(error => {
         this.spinning = false
@@ -374,14 +362,14 @@ export default {
       this.addVisible = false
       this.addForm = {
         name: '',
-        sex: '男',
+        sex: 1,
         birthday: '',
         faceBase64: ''
       }
     },
     handleAdd (e) {
       if (this.facegroupId === '') {
-        this.$message.error('无效名人库ID！')
+        this.$message.error('无效明星库ID！')
         return
       }
       if (this.addForm.name === '') {
@@ -397,7 +385,7 @@ export default {
         return
       }
       if (this.addForm.faceBase64 === '') {
-        this.$message.error('请上传名人图片！')
+        this.$message.error('请上传明星图片！')
         return
       }
 
@@ -411,20 +399,20 @@ export default {
       this.addLoading = true
       api.addFace(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          // this.datalist.unshift(res.data)
-          this.datalist = []
-          this.nextPageToken = ''
-          this.getFaces()
+          this.datalist.unshift(res.data)
+          // this.datalist = []
+          // this.nextPageToken = ''
+          // this.getFaces()
 
           this.addVisible = false
           this.addLoading = false
           this.addForm = {
             name: '',
-            sex: '男',
+            sex: 1,
             birthday: '',
             faceBase64: ''
           }
-          this.$message.success('名人创建成功')
+          this.$message.success('明星创建成功')
         }
       }).catch(error => {
         this.addLoading = false
@@ -439,7 +427,7 @@ export default {
       this.editForm = item
       var item_ = item
       item_.url = item.fullUri
-      item_.uid = item.id
+      item_.uid = -1
       this.fileList_edit = [item_]
     },
     beforeUpload_edit (file, fileList) {
@@ -468,7 +456,7 @@ export default {
     },
     handleEdit () {
       if (this.facegroupId === '') {
-        this.$message.error('无效名人库ID！')
+        this.$message.error('无效明星库ID！')
         return
       }
       if (this.editForm.name === '') {
@@ -484,7 +472,7 @@ export default {
         return
       }
       if (this.editForm.faceBase64 === '') {
-        this.$message.error('请上传名人图片！')
+        this.$message.error('请上传明星图片！')
         return
       }
 
@@ -499,15 +487,15 @@ export default {
       this.editLoading = true
       api.editFace(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          // this.datalist.unshift(res.data)
-          this.datalist = []
-          this.nextPageToken = ''
-          this.getFaces()
+          this.datalist.splice(this.editKey, 1, res.data)
+          // this.datalist = []
+          // this.nextPageToken = ''
+          // this.getFaces()
 
           this.editVisible = false
           this.editLoading = false
           this.editForm = {}
-          this.$message.success('名人编辑成功')
+          this.$message.success('明星编辑成功')
         }
       }).catch(error => {
         this.editLoading = false
@@ -540,7 +528,7 @@ export default {
       api.delFace(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.datalist.splice(idx, 1)
-          this.$message.success('名人删除成功')
+          this.$message.success('明星删除成功')
         }
       }).catch(error => {
         console.log(error.response)

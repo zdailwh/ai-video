@@ -8,7 +8,7 @@
         <div class="opt mymenu" style="justify-content: center;">
           <a-menu theme="dark" v-model="current" mode="horizontal">
             <!-- <a-menu-item key="/facegroup"><router-link to="/facegroup">人脸库</router-link></a-menu-item> -->
-            <a-menu-item key="/star"><router-link to="/star">名人库</router-link></a-menu-item>
+            <a-menu-item key="/star"><router-link to="/star">明星库</router-link></a-menu-item>
             <a-menu-item key="/task"><router-link to="/task">任务</router-link></a-menu-item>
           </a-menu>
         </div>
