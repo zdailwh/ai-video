@@ -9,7 +9,8 @@
           <a-menu theme="dark" v-model="current" mode="horizontal">
             <!-- <a-menu-item key="/facegroup"><router-link to="/facegroup">人脸库</router-link></a-menu-item> -->
             <a-menu-item key="/star"><router-link to="/star">明星库</router-link></a-menu-item>
-            <a-menu-item key="/task"><router-link to="/task">任务</router-link></a-menu-item>
+            <a-menu-item key="/task"><router-link to="/task">离线任务</router-link></a-menu-item>
+            <a-menu-item key="/live"><router-link to="/live">直播流</router-link></a-menu-item>
           </a-menu>
         </div>
         <div class="opt" style="justify-content: flex-end;">
@@ -28,7 +29,7 @@
     <div class="container">
       <div class="file-page">
         <div class="file-slider">
-          <ul></ul>
+          <ul><li>视频1</li></ul>
         </div>
         <div class="file-main">
           <router-view/>
@@ -93,7 +94,7 @@ export default {
   cursor: pointer;
 }
 .header .logo img {
-  height: 60px;
+  max-height: 60px;
   margin-right: 10px;
 }
 .header .logo .logo_title {
@@ -249,6 +250,9 @@ export default {
 .d-right .ant-tabs {
   color: #a2a2a2;
 }
+.d-right .ant-tabs-tab-prev, .d-right .ant-tabs-tab-next {
+  color: #a2a2a2;
+}
 .d-right .ant-tabs-bar {
   border-bottom: 1px solid #555;
 }
@@ -346,5 +350,12 @@ export default {
 .ant-transfer-list-body-customize-wrapper {
   height: calc(260px - 40px - 44px);
   overflow-y: scroll;
+}
+/*左侧tab*/
+.sliderWrap .ant-tabs {
+  color: #a2a2a2;
+}
+.sliderWrap .ant-tabs-tab-prev, .sliderWrap .ant-tabs-tab-next {
+  color: #a2a2a2;
 }
 </style>

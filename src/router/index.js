@@ -7,6 +7,7 @@ import Facegroup from '@/views/facegroup'
 import Face from '@/views/face'
 import Task from '@/views/task'
 import Star from '@/views/star'
+import Live from '@/views/live'
 
 Vue.use(Router)
 
@@ -50,6 +51,11 @@ export default new Router({
       path: '/star',
       name: 'Star',
       component: Star
+    },
+    {
+      path: '/live',
+      name: 'Live',
+      component: Live
     }
   ]
 })

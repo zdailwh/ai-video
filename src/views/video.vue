@@ -63,7 +63,7 @@
     </div>
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
       <a-tabs default-active-key="1" size="small" @change="callback">
-        <a-tab-pane key="1" tab="人脸识别结果">
+        <a-tab-pane key="1" tab="任务结果">
           <!-- <div class="searchWrap_video">
             <a-form-model ref="searchForm" :model="searchForm" layout="inline">
               <a-form-model-item label="人脸">
@@ -118,7 +118,46 @@ export default {
       searchForm: {
         type: ''
       },
-      typeArr: [ '张含韵', '张雨绮', '宁静', '伊能静' ]
+      typeArr: [ '张含韵', '张雨绮', '宁静', '伊能静' ],
+      datavideo: {
+        play_url: 'https://1256993030.vod2.myqcloud.com/d520582dvodtransgzp1256993030/7732bd367447398157015849771/v.f40.mp4'
+      },
+      taskResult: [
+        {
+          'faceId': '1-AAABczbmMnw9SqFvAAAAAg==',
+          'name': '张含韵',
+          'time': '1分1秒',
+          '上身纹理': '横条纹:0.82310396',
+          '下身尺寸': '长:0.9772702',
+          '下身类型': '短裙:0.8407891',
+          '下身颜色': '黑色:0.9499273',
+          '人朝向': '前:0.97419655',
+          '体形': '正常:0.99434173',
+          '发型': '长:0.9999629',
+          '头发': '长发',
+          '年龄': '18-30岁:0.9642571',
+          '性别': '女性:0.9999788',
+          '有无带包': '是:0.89711547',
+          '肤色': '黄皮肤'
+        },
+        {
+          'faceId': '2-AAABczbmMnw9SqFvAAAAAg==',
+          'name': '张含韵',
+          'time': '53秒',
+          '上身纹理': '横条纹:0.82310396',
+          '下身尺寸': '长:0.9772702',
+          '下身类型': '短裙:0.8407891',
+          '下身颜色': '黑色:0.9499273',
+          '人朝向': '前:0.97419655',
+          '体形': '正常:0.99434173',
+          '发型': '长:0.9999629',
+          '头发': '长发',
+          '年龄': '18-30岁:0.9642571',
+          '性别': '女性:0.9999788',
+          '有无带包': '是:0.89711547',
+          '肤色': '黄皮肤'
+        }
+      ]
     }
   },
   mounted () {
@@ -127,11 +166,14 @@ export default {
       this.smallLayout = true
     }
 
-    this.taskId = this.$route.params.taskId
-    if (this.taskId) {
-      this.getTasks()
-      this.getTaskResults()
-    }
+    // this.taskId = this.$route.params.taskId
+    // if (this.taskId) {
+    //   this.getTasks()
+    //   this.getTaskResults()
+    // }
+    this.datalist = this.taskResult
+    this.createPlayer()
+
     var ele = document.querySelectorAll('.file-main')
     if (ele.length) {
       ele[0].style.backgroundColor = '#171819'
@@ -179,13 +221,14 @@ export default {
       console.log(key)
     },
     createPlayer () {
-      var url = this.task.url
+      var url = this.datavideo.play_url
+      // var url = this.task.url
 
       var player = new TcPlayer('tcplayer', {
         mp4: url,
-        autoplay: false,
-        width: 'auto',
-        height: '100%',
+        autoplay: true,
+        width: '100%',
+        height: 'auto',
         wording: {
           1001: '网络错误，请检查网络配置或者播放链接是否正确',
           1002: '获取视频失败，请检查播放链接是否有效',
