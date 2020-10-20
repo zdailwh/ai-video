@@ -176,5 +176,28 @@ export default {
   async getTaskResults (params) {
     var res = await axios.get('/api/v1/new_task_result/' + params.taskId)
     return res
+  },
+
+  async login (params) {
+    // if (process.env.NODE_ENV === 'production') {
+    //   var res = await axios.post('/api/v1/login', {
+    //     username: params.username,
+    //     password: params.password
+    //   })
+    //   return res
+    // } else {
+    const data = await await timeout(200).then(() => mock.authentication)
+    return { status: 200, data: data }
+    // }
+  },
+
+  async logout (params) {
+    // if (process.env.NODE_ENV === 'production') {
+    //   var res = await axios.get('/api/v1/logout')
+    //   return res
+    // } else {
+    const data = await await timeout(200).then(() => mock.authentication)
+    return { status: 200, data: data }
+    // }
   }
 }

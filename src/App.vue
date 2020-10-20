@@ -3,26 +3,27 @@
     <div class="lager-layout">
       <div class="header">
         <div class="opt">
-          <div class="logo"><img src="./assets/ks_logo.png"><span class="logo_title" v-show="smallLayout === false">智能内容管理系统</span></div>
+          <div class="logo" v-show="smallLayout === false"><img src="./assets/ks_logo.png"><span class="logo_title">智能内容管理系统</span></div>
         </div>
         <div class="opt mymenu" style="justify-content: center;">
           <a-menu theme="dark" v-model="current" mode="horizontal">
             <!-- <a-menu-item key="/facegroup"><router-link to="/facegroup">人脸库</router-link></a-menu-item> -->
-            <a-menu-item key="/star"><router-link to="/star">明星库</router-link></a-menu-item>
-            <a-menu-item key="/task"><router-link to="/task">离线任务</router-link></a-menu-item>
             <a-menu-item key="/live"><router-link to="/live">直播流</router-link></a-menu-item>
+            <a-menu-item key="/task"><router-link to="/task">离线任务</router-link></a-menu-item>
+            <a-menu-item key="/star"><router-link to="/star">明星库</router-link></a-menu-item>
+            <a-menu-item key="/setting"><router-link to="/setting">设置</router-link></a-menu-item>
           </a-menu>
         </div>
-        <div class="opt" style="justify-content: flex-end;">
-          <!-- <div class="person-info">
-            <div class="avatar"><img src="./assets/user.png" alt=""></div>
-            <div class="my-name">
-              <span class="userName_title" title="" v-on:mouseover="showMenus=true">测试用户</span>
+        <div class="opt" style="justify-content: flex-end;flex:1;">
+          <div class="person-info">
+            <div class="avatar" v-show="smallLayout === false"><img src="./assets/user.png" alt=""></div>
+            <div class="my-name" v-show="current.indexOf('/login') === -1">
+              <span class="userName_title" title="" v-on:mouseover="showMenus=true">admin</span>
               <ul class="my-opt" v-show="showMenus">
-                <li><span>退出登录</span></li>
+                <li @click="logout" v-on:mouseout="showMenus=false"><span>退出登录</span></li>
               </ul>
             </div>
-          </div> -->
+          </div>
         </div>
       </div>
     </div>
@@ -57,6 +58,15 @@ export default {
     var viewWidth = document.documentElement.clientWidth
     if (viewWidth < 540) {
       this.smallLayout = true
+    }
+  },
+  methods: {
+    logout () {
+      this.showMenus = false
+      this.$store.dispatch('authentication/logout').then(() => {
+        this.$router.push({ path: '/login' })
+      }).catch(() => {
+      })
     }
   }
 }

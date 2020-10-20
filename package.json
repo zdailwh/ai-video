@@ -16,6 +16,7 @@
   "dependencies": {
     "ant-design-vue": "^1.6.4",
     "axios": "^0.19.2",
+    "js-cookie": "^2.2.1",
     "lodash.difference": "^4.5.0",
     "moment": "^2.27.0",
     "tcplayer": "^0.0.29",

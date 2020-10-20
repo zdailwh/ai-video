@@ -1,7 +1,7 @@
 <template>
   <div class="login_container">
-    <div class="login-wrap">
-      <div class="login_bg">
+    <div class="login-wrap" :style="smallLayout?'width:369px':''">
+      <div class="login_bg" v-show="smallLayout === false">
         <span>智能内容管理系统</span>
       </div>
       <div class="login_box">
@@ -29,6 +29,7 @@
   </div>
 </template>
 <script>
+import { setToken } from '../utils/auth'
 export default {
   data () {
     let checkPending
@@ -48,6 +49,7 @@ export default {
       }
     }
     return {
+      smallLayout: false,
       loginForm: {
         username: '',
         password: ''
@@ -59,14 +61,47 @@ export default {
       layout: {
         labelCol: { span: 0 },
         wrapperCol: { span: 24 }
-      }
+      },
+      loading: false,
+      redirect: undefined
+    }
+  },
+  watch: {
+    $route: {
+      handler: function (route) {
+        this.redirect = route.query && route.query.redirect
+      },
+      immediate: true
+    }
+  },
+  mounted () {
+    var viewWidth = document.documentElement.clientWidth
+    if (viewWidth < 540) {
+      this.smallLayout = true
     }
   },
   methods: {
     submitForm (formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          this.$router.push('/video')
+          if (this.loginForm.username !== 'admin') {
+            this.$message.error('用户名错误')
+            return
+          }
+          if (this.loginForm.password !== 'admin') {
+            this.$message.error('密码错误')
+            return
+          }
+
+          setToken(JSON.stringify(this.loginForm))
+          this.$router.push({ path: this.redirect || '/' })
+          // this.loading = true
+          // this.$store.dispatch('authentication/login', this.loginForm).then(() => {
+          //   this.$router.push({ path: this.redirect || '/' })
+          //   this.loading = false
+          // }).catch(() => {
+          //   this.loading = false
+          // })
         } else {
           console.log('error submit!!')
           return false
@@ -95,8 +130,9 @@ export default {
   position: absolute;
   left: 50%;
   top: 50%;
-  margin-left: -500px;
-  margin-top: -217px;
+  /*margin-left: -500px;
+  margin-top: -217px;*/
+  transform: translate(-50%, -50%);
 }
 .login_container .login-wrap .login_bg {
   position: absolute;
