@@ -35,17 +35,43 @@
           </a-tab-pane>
           <a-tab-pane v-for="i in 3" :key="i" :tab="`任务${i}`">
             <div class="oprateWrap">
-              <a-button type="primary" size="small">编辑</a-button>
-              <a-button type="primary" size="small">删除</a-button>
-              <a-button type="primary" size="small">复制</a-button>
-              <a-button type="primary" size="small">执行</a-button>
-              <a-button type="primary" size="small">停止</a-button>
+              <a-button type="primary" size="small" @click="toEdit('edit')">编辑</a-button>
+              <a-popconfirm
+                  title="确定要删除该任务吗?"
+                  ok-text="删除"
+                  cancel-text="取消"
+                >
+                <a-button type="primary" size="small">删除</a-button>
+              </a-popconfirm>
+              <a-button type="primary" size="small" @click="toEdit('copy')">复制</a-button>
+              <a-popconfirm
+                  v-if="status === 1"
+                  title="确定要停止该任务吗?"
+                  ok-text="停止"
+                  cancel-text="取消"
+                  @confirm="stop"
+                >
+                <a-button type="danger" size="small">停止</a-button>
+              </a-popconfirm>
+              <a-popconfirm
+                  v-else
+                  title="确定要执行该任务吗?"
+                  ok-text="执行"
+                  cancel-text="取消"
+                  @confirm="start"
+                >
+                <a-button type="primary" size="small">执行</a-button>
+              </a-popconfirm>
             </div>
             <Face :taskresult="datalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
           </a-tab-pane>
         </a-tabs>
       </div>
     </div>
+
+    <AddTask :datalist="datalist" :add-visible="addVisible" :mock-data="mockData" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" />
+    <EditTask :datalist="datalist" :edit-visible="editVisible" :mock-data="mockData" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" />
+
   </div>
 </template>
 <script>
@@ -53,6 +79,52 @@ import api from '../api'
 import { TcPlayer } from 'tcplayer'
 import Setting from '../components/Setting'
 import Face from '../components/Face'
+import AddTask from '../components/AddTask.vue'
+import EditTask from '../components/EditTask.vue'
+
+import nj from '../assets/u3.jpg'
+import zyq from '../assets/u1.png'
+import wlk from '../assets/u5.jpg'
+import wq from '../assets/u4.jpg'
+
+var stars = [
+  {
+    create_time: '2020-08-24T07:04:42.427Z',
+    description: '',
+    fullUri: zyq,
+    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
+    key: '90-AAABdB9IjLv0dekZAAAAAQ==',
+    id: '90-AAABdB9IjLv0dekZAAAAAQ==',
+    title: '张雨绮'
+  },
+  {
+    create_time: '2020-08-11T05:02:14.281Z',
+    description: '宁静',
+    fullUri: nj,
+    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
+    key: '90-AAABc9vlwQmo265QAAAAAg==',
+    id: '90-AAABc9vlwQmo265QAAAAAg==',
+    title: '宁静'
+  },
+  {
+    create_time: '2020-08-11T05:01:52.489Z',
+    description: '王丽坤',
+    fullUri: wlk,
+    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
+    key: '90-AAABc9vla-mo265PAAAAAQ==',
+    id: '90-AAABc9vla-mo265PAAAAAQ==',
+    title: '王丽坤'
+  },
+  {
+    create_time: '2020-08-11T03:24:19.131Z',
+    description: '万茜',
+    fullUri: wq,
+    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
+    key: '90-AAABc9uMGzuo265MAAAAAg==',
+    id: '90-AAABc9uMGzuo265MAAAAAg==',
+    title: '万茜'
+  }
+]
 
 var assetsBaseurl = ''
 if (process.env.NODE_ENV === 'production') {
@@ -65,9 +137,10 @@ export default {
   beforeRouteEnter (to, from, next) {
     next()
   },
-  components: { Setting, Face },
+  components: { Setting, Face, AddTask, EditTask },
   data () {
     return {
+      status: 1,
       smallLayout: false,
       datalist: [],
       task: {},
@@ -115,7 +188,23 @@ export default {
           '有无带包': '是:0.89711547',
           '肤色': '黄皮肤'
         }
-      ]
+      ],
+      addVisible: false,
+      editVisible: false,
+      typeArr_search: [ '在线视频任务', '离线视频任务' ],
+      mockData: stars,
+      targetKeys: [],
+      selectedKeys: [],
+      editForm: {
+        type: '',
+        url: '',
+        name: '',
+        repoId: '',
+        rate: 1
+      },
+      editItem: {},
+      editKey: '',
+      editTag: '' // 'edit' || 'copy'
     }
   },
   mounted () {
@@ -177,6 +266,10 @@ export default {
     },
     callback (key) {
       console.log(key)
+      if (key === 'add') {
+        this.addVisible = true
+        this.targetKeys = []
+      }
     },
     createPlayer () {
       var url = this.datavideo.play_url
@@ -208,7 +301,7 @@ export default {
     searchHandleOk () {
       this.$refs.searchForm.validate(valid => {
         if (valid) {
-          alert('submit!')
+          console.log('submit!')
         } else {
           console.log('error submit!!')
           return false
@@ -237,6 +330,24 @@ export default {
 
       console.log(params.item)
       this.taskResItem = params.item
+    },
+    toEdit (tag) {
+      this.editTag = tag
+      this.editVisible = true
+      this.editItem = {}
+      this.editKey = 0
+      this.editForm = {}
+      this.targetKeys = ['90-AAABc9vlwQmo265QAAAAAg==', '90-AAABc9uMGzuo265MAAAAAg==']
+    },
+    start () {
+      this.status = 1
+    },
+    stop () {
+      this.status = 2
+    },
+    updateData (params) {
+      console.log(params)
+      this[params.key] = params.val
     }
   }
 }

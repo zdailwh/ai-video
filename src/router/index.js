@@ -8,6 +8,7 @@ import Face from '@/views/face'
 import Task from '@/views/task'
 import Star from '@/views/star'
 import Live from '@/views/live'
+import Setting from '@/views/setting'
 
 Vue.use(Router)
 
@@ -25,7 +26,10 @@ export default new Router({
     {
       path: '/video/:taskId',
       name: 'Video',
-      component: Video
+      component: Video,
+      meta: {
+        title: '查看任务结果'
+      }
     },
     {
       path: '/facegroup',
@@ -40,22 +44,42 @@ export default new Router({
     {
       path: '/task',
       name: 'Task',
-      component: Task
+      component: Task,
+      meta: {
+        title: '离线任务'
+      }
     },
     {
       path: '/login',
       name: 'Login',
-      component: Login
+      component: Login,
+      meta: {
+        title: '登录'
+      }
     },
     {
       path: '/star',
       name: 'Star',
-      component: Star
+      component: Star,
+      meta: {
+        title: '明星库'
+      }
     },
     {
       path: '/live',
       name: 'Live',
-      component: Live
+      component: Live,
+      meta: {
+        title: '直播流'
+      }
+    },
+    {
+      path: '/setting',
+      name: 'Setting',
+      component: Setting,
+      meta: {
+        title: '设置'
+      }
     }
   ]
 })
