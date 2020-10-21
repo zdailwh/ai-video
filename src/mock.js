@@ -12,9 +12,9 @@ Random.cword()
 Random.natural()
 
 let templateFace = {
-  'ID|2-10000': 2,
-  'CreatedAt': '@datetime',
-  'UpdatedAt': '@datetime',
+  'id|2-10000': 2,
+  'create_time': '@datetime',
+  'update_time': '@datetime',
   'DeletedAt': {
     'Time': '@datetime',
     'Valid': false
@@ -24,7 +24,7 @@ let templateFace = {
   'name': '@cname',
   'sex|1-2': 1,
   'birthday': '@date',
-  'fullUri': 'http://10.122.94.101:8080/v5/resources/data?uri=&contentType=image/jpeg'
+  'fullUri': [ 'http://10.122.94.101:8080/v5/resources/data?uri=&contentType=image/jpeg', 'http://10.122.94.101:8080/v5/resources/data?uri=&contentType=image/jpeg', 'http://10.122.94.101:8080/v5/resources/data?uri=&contentType=image/jpeg' ]
 }
 
 let templateFaces = {
@@ -33,8 +33,8 @@ let templateFaces = {
 
 let templateVideo = {
   'ID|2-10000': 2,
-  'CreatedAt': '@datetime',
-  'UpdatedAt': '@datetime',
+  'create_time': '@datetime',
+  'update_time': '@datetime',
   'DeletedAt': {
     'Time': '@datetime',
     'Valid': false

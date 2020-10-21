@@ -19,34 +19,34 @@
     <a-divider />
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-spin :spinning="spinning">
-        <div class="cardList">
-          <div class="cardItem" v-for="(item, key) in datalist" :key="key">
-            <a-card hoverable>
-              <!-- <img slot="cover" alt="example" :src="item.fullUri" /> -->
-              <img slot="cover" alt="example" src="../assets/u1.png" />
-              <a-card-meta :title="item.name">
-                <template slot="description">
-                  <p class="desc">{{item.sex === 1? '男': '女'}}</p>
-                  <p class="desc">{{item.description}}</p>
-                  <p class="date">({{item.create_time | dateFormat}})</p>
-                </template>
-              </a-card-meta>
-              <template slot="actions" class="ant-card-actions">
-                <a-button type="link" icon="edit" title="编辑" @click="toEdit(item, key)" />
-                <a-popconfirm
-                  title="确定要删除该明星吗?"
-                  ok-text="删除"
-                  cancel-text="取消"
-                  @confirm="delFace(item.id, key)"
-                >
-                  <a-button type="link" icon="delete" title="删除" />
-                </a-popconfirm>
-              </template>
-            </a-card>
-          </div>
-        </div>
-      </a-spin>
+      <a-table :columns="columns" :data-source="datalist" rowKey="id">
+        <span slot="sex" slot-scope="sex">
+          {{sex === 1? '男': '女'}}
+        </span>
+        <span slot="fullUri" slot-scope="fullUri">
+          <a-popover title="" v-for="(i,k) in fullUri" :key="k">
+            <template slot="content">
+              <img class="tablePopImg" src="../assets/u1.png" />
+            </template>
+            <img class="tableImg" src="../assets/u1.png" />
+          </a-popover>
+        </span>
+        <span slot="create_time" slot-scope="create_time">
+          {{create_time | dateFormat}}
+        </span>
+        <span slot="action" slot-scope="record, index">
+          <a @click="toEdit(record, index)">编辑</a>
+          <a-divider type="vertical" />
+          <a-popconfirm
+            title="确定要删除该明星吗?"
+            ok-text="删除"
+            cancel-text="取消"
+            @confirm="delFace(record.id, index)"
+          >
+            <a>删除</a>
+          </a-popconfirm>
+        </span>
+      </a-table>
     </div>
     <!--创建明星-->
     <a-modal
@@ -69,13 +69,14 @@
           <a-form-model-item label="明星图片">
             <a-upload
               list-type="picture-card"
+              :multiple="true"
               :beforeUpload="beforeUpload_add"
               :file-list="fileList_add"
               :remove="handleRemove_add"
               @preview="handlePreview"
               @change="handleChange_add"
             >
-              <div v-if="fileList_add.length < 1">
+              <div>
                 <a-icon type="plus" />
                 <div class="ant-upload-text">
                   上传图片
@@ -115,13 +116,14 @@
           <a-form-model-item label="明星图片">
             <a-upload
               list-type="picture-card"
+              :multiple="true"
               :beforeUpload="beforeUpload_edit"
               :file-list="fileList_edit"
               :remove="handleRemove_edit"
               @preview="handlePreview"
               @change="handleChange_edit"
             >
-              <div v-if="fileList_edit.length < 1">
+              <div>
                 <a-icon type="plus" />
                 <div class="ant-upload-text">
                   上传图片
@@ -188,35 +190,26 @@ const columns = [
     key: 'name'
   },
   {
-    title: '描述',
-    dataIndex: 'description',
-    key: 'description'
-  },
-  {
-    title: '年龄',
-    dataIndex: 'attributes.Age',
-    key: 'Age'
+    title: '生日',
+    dataIndex: 'birthday',
+    key: 'birthday'
   },
   {
     title: '性别',
-    dataIndex: 'attributes.Gender',
-    key: 'Gender',
-    scopedSlots: { customRender: 'Gender' }
-  },
-  // {
-  //   title: 'livness',
-  //   dataIndex: 'livness',
-  //   key: 'attributes.livness'
-  // },
-  {
-    title: 'quality',
-    dataIndex: 'attributes.quality',
-    key: 'quality'
+    dataIndex: 'sex',
+    key: 'sex',
+    scopedSlots: { customRender: 'sex' }
   },
   {
-    title: '时间',
-    key: 'time',
-    scopedSlots: { customRender: 'time' }
+    title: '图片',
+    dataIndex: 'fullUri',
+    key: 'fullUri',
+    scopedSlots: { customRender: 'fullUri' }
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'create_time',
+    key: 'create_time'
   },
   {
     title: 'Action',
@@ -251,7 +244,7 @@ export default {
         name: '',
         sex: 1,
         birthday: '',
-        faceBase64: ''
+        faceBase64: []
       },
       addLoading: false,
       fileList_add: [],
@@ -266,7 +259,7 @@ export default {
         // name: '',
         // sex: '',
         // birthday: '',
-        // faceBase64: ''
+        // faceBase64: []
       },
       editLoading: false,
       editItem: {},
@@ -329,34 +322,25 @@ export default {
         console.log(error)
       })
     },
-    // handleChange (info) {
-    //   console.log(info.fileList.length)
-    //   if (info.fileList.length > 1) {
-    //     this.$message.error('只能上传一张图片!')
-    //     return false
-    //   } else {
-    //     getBase64(info.file, imageUrl => {
-    //       this.addForm.faceBase64 = imageUrl
-    //     })
-    //   }
-    // },
     beforeUpload_add (file, fileList) {
       const isImg = file.type === 'image/jpeg' || file.type === 'image/png'
       if (!isImg) {
         this.$message.error('请选择图片文件!')
         return false
       }
-      var self = this
-      getBase64_(file, imageUrl => {
-        self.addForm.faceBase64 = imageUrl.substring(imageUrl.indexOf(',') + 1)
-      })
       return false
     },
     handleChange_add ({ fileList }) {
       this.fileList_add = fileList
+      var self = this
+      fileList.forEach(function (element, index) {
+        getBase64_(element, imageUrl => {
+          self.addForm.faceBase64.push(imageUrl.substring(imageUrl.indexOf(',') + 1))
+        })
+      })
     },
     handleRemove_add (file) {
-      this.addForm.faceBase64 = ''
+      // this.addForm.faceBase64 = []
     },
     handleCancel_add () {
       this.addVisible = false
@@ -364,7 +348,7 @@ export default {
         name: '',
         sex: 1,
         birthday: '',
-        faceBase64: ''
+        faceBase64: []
       }
     },
     handleAdd (e) {
@@ -384,7 +368,7 @@ export default {
         this.$message.error('请选择出生日期！')
         return
       }
-      if (this.addForm.faceBase64 === '') {
+      if (!this.addForm.faceBase64.length) {
         this.$message.error('请上传明星图片！')
         return
       }
@@ -410,7 +394,7 @@ export default {
             name: '',
             sex: 1,
             birthday: '',
-            faceBase64: ''
+            faceBase64: []
           }
           this.$message.success('明星创建成功')
         }
@@ -425,10 +409,10 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
-      var item_ = item
-      item_.url = item.fullUri
-      item_.uid = -1
-      this.fileList_edit = [item_]
+
+      this.fileList_edit = item.fullUri.map((i, k, arr) => {
+        return { url: i, uid: k }
+      })
     },
     beforeUpload_edit (file, fileList) {
       const isImg = file.type === 'image/jpeg' || file.type === 'image/png'
@@ -436,17 +420,19 @@ export default {
         this.$message.error('请选择图片文件!')
         return false
       }
-      var self = this
-      getBase64_(file, imageUrl => {
-        self.editForm.faceBase64 = imageUrl.substring(imageUrl.indexOf(',') + 1)
-      })
       return false
     },
     handleChange_edit ({ fileList }) {
       this.fileList_edit = fileList
+      var self = this
+      fileList.forEach(function (element, index) {
+        getBase64_(element, imageUrl => {
+          self.editForm.faceBase64.push(imageUrl.substring(imageUrl.indexOf(',') + 1))
+        })
+      })
     },
     handleRemove_edit (file) {
-      this.editForm.faceBase64 = ''
+      // this.editForm.faceBase64 = []
     },
     handleCancel_edit () {
       this.editVisible = false
@@ -471,7 +457,7 @@ export default {
         this.$message.error('请选择出生日期！')
         return
       }
-      if (this.editForm.faceBase64 === '') {
+      if (!this.editForm.faceBase64.length) {
         this.$message.error('请上传明星图片！')
         return
       }
@@ -562,13 +548,14 @@ function getBase64 (file) {
 .tableWrap {
   width: 100%;
 }
-
-.desc {
-  color: #555;
+.tableImg {
+  max-width: 50px;
 }
-.date {
-  font-size: .8em;
-  color: #aaa;
+.tableImg + .tableImg {
+  margin-left: 5px;
+}
+.tablePopImg {
+  max-width: 280px;
 }
 
 .searchWrap {
