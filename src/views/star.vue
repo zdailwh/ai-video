@@ -3,8 +3,8 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="名称" prop="name">
-          <a-input v-model="searchForm.name" />
+        <a-form-model-item label="名称" prop="Name">
+          <a-input v-model="searchForm.Name" />
         </a-form-model-item>
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
@@ -16,32 +16,39 @@
         <a-button type="primary" @click="importVisible = true"><a-icon key="import" type="import"/>批量导入</a-button>
       </div>
     </div>
-    <a-divider />
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" rowKey="id">
-        <span slot="sex" slot-scope="sex">
-          {{sex === 1? '男': '女'}}
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID">
+        <span slot="Gender" slot-scope="Gender">
+          {{Gender === 1? '男': '女'}}
         </span>
-        <span slot="fullUri" slot-scope="fullUri">
-          <a-popover title="" v-for="(i,k) in fullUri" :key="k">
+        <span slot="FullURI" slot-scope="FullURI">
+          <a-popover title="">
             <template slot="content">
-              <img class="tablePopImg" src="../assets/u1.png" />
+              <img class="tablePopImg" :src="FullURI" />
             </template>
-            <img class="tableImg" src="../assets/u1.png" />
+            <img class="tableImg" :src="FullURI" />
+          </a-popover>
+        </span>
+        <span slot="Features" slot-scope="Features">
+          <a-popover title="" v-for="(i,k) in Features" :key="k">
+            <template slot="content">
+              <img class="tablePopImg" :src="i" />
+            </template>
+            <img class="tableImg" :src="i" />
           </a-popover>
         </span>
         <span slot="create_time" slot-scope="create_time">
           {{create_time | dateFormat}}
         </span>
-        <span slot="action" slot-scope="record, index">
-          <a @click="toEdit(record, index)">编辑</a>
+        <span slot="action" slot-scope="record, index, idx">
+          <a @click="toEdit(record, idx)">编辑</a>
           <a-divider type="vertical" />
           <a-popconfirm
             title="确定要删除该明星吗?"
             ok-text="删除"
             cancel-text="取消"
-            @confirm="delFace(record.id, index)"
+            @confirm="delFace(record.id, idx)"
           >
             <a>删除</a>
           </a-popconfirm>
@@ -56,17 +63,17 @@
       <div>
         <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
           <a-form-model-item label="名称">
-            <a-input v-model="addForm.name" />
+            <a-input v-model="addForm.Name" />
           </a-form-model-item>
           <a-form-model-item label="性别">
-            <a-radio-group name="sex" v-model="addForm.sex">
+            <a-radio-group name="Gender" v-model="addForm.Gender">
               <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
             </a-radio-group>
           </a-form-model-item>
           <a-form-model-item label="出生日期">
-            <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="addForm.birthday" />
+            <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="addForm.Birthday" />
           </a-form-model-item>
-          <a-form-model-item label="明星图片">
+          <a-form-model-item label="特征图">
             <a-upload
               list-type="picture-card"
               :multiple="true"
@@ -103,22 +110,23 @@
       <div>
         <a-form-model :model="editForm" :label-col="{span:4}" :wrapper-col="{span:14}">
           <a-form-model-item label="名称">
-            <a-input v-model="editForm.name" />
+            <a-input v-model="editForm.Name" />
           </a-form-model-item>
           <a-form-model-item label="性别">
-            <a-radio-group name="sex" v-model="editForm.sex">
+            <a-radio-group name="Gender" v-model="editForm.Gender">
               <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
             </a-radio-group>
           </a-form-model-item>
           <a-form-model-item label="出生日期">
-            <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="editForm.birthday" />
+            <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="editForm.Birthday" />
           </a-form-model-item>
-          <a-form-model-item label="明星图片">
+          <a-form-model-item label="特征图">
             <a-upload
               list-type="picture-card"
               :multiple="true"
               :beforeUpload="beforeUpload_edit"
               :file-list="fileList_edit"
+              :default-file-list="defaultFileList_edit"
               :remove="handleRemove_edit"
               @preview="handlePreview"
               @change="handleChange_edit"
@@ -181,38 +189,44 @@ var moment = require('moment')
 const columns = [
   {
     title: 'ID',
-    dataIndex: 'id',
-    key: 'id'
+    dataIndex: 'ID',
+    key: 'ID'
   },
   {
     title: '名称',
-    dataIndex: 'name',
-    key: 'name'
+    dataIndex: 'Name',
+    key: 'Name'
   },
   {
     title: '生日',
-    dataIndex: 'birthday',
-    key: 'birthday'
+    dataIndex: 'Birthday',
+    key: 'Birthday'
   },
   {
     title: '性别',
-    dataIndex: 'sex',
-    key: 'sex',
-    scopedSlots: { customRender: 'sex' }
+    dataIndex: 'Gender',
+    key: 'Gender',
+    scopedSlots: { customRender: 'Gender' }
   },
   {
-    title: '图片',
-    dataIndex: 'fullUri',
-    key: 'fullUri',
-    scopedSlots: { customRender: 'fullUri' }
+    title: '人脸图',
+    dataIndex: 'FullURI',
+    key: 'FullURI',
+    scopedSlots: { customRender: 'FullURI' }
+  },
+  {
+    title: '特征图',
+    dataIndex: 'Features',
+    key: 'Features',
+    scopedSlots: { customRender: 'Features' }
   },
   {
     title: '创建时间',
-    dataIndex: 'create_time',
-    key: 'create_time'
+    dataIndex: 'CreatedAt',
+    key: 'CreatedAt'
   },
   {
-    title: 'Action',
+    title: '操作',
     key: 'action',
     scopedSlots: { customRender: 'action' }
   }
@@ -234,15 +248,13 @@ export default {
       locale,
       smallLayout: false,
       spinning: false,
-      facegroupId: '',
       datalist: [],
-      pageOffset: 0,
+      pageNum: 0,
       pageSize: 10,
-      nextPageToken: '',
       columns,
       addForm: {
-        name: '',
-        sex: 1,
+        Name: '',
+        Gender: 1,
         birthday: '',
         faceBase64: []
       },
@@ -250,14 +262,14 @@ export default {
       fileList_add: [],
       addVisible: false,
       searchForm: {
-        name: ''
+        Name: ''
       },
       importForm: {
       },
       importVisible: false,
       editForm: {
-        // name: '',
-        // sex: '',
+        // Name: '',
+        // Gender: '',
         // birthday: '',
         // faceBase64: []
       },
@@ -265,6 +277,7 @@ export default {
       editItem: {},
       editKey: '',
       fileList_edit: [],
+      defaultFileList_edit: [],
       editVisible: false,
       previewVisible: false,
       previewImage: ''
@@ -285,16 +298,11 @@ export default {
       this.smallLayout = true
     }
 
-    this.facegroupId = this.$route.params.facegroupId || '163a28d9-bc6c-44a3-832f-9f07939d2265'
-
-    if (this.facegroupId) {
-      this.getFaces()
-    }
+    this.getFaces()
   },
   methods: {
     searchHandleOk () {
       this.datalist = []
-      this.nextPageToken = ''
       this.getFaces()
     },
     searchHandleReset (formName) {
@@ -302,16 +310,15 @@ export default {
     },
     getFaces () {
       var params = {
-        pageOffset: this.pageOffset,
-        pageSize: this.pageSize,
-        nextPageToken: this.nextPageToken,
-        faceGroupId: this.facegroupId
+        pageNum: this.pageNum,
+        pageSize: this.pageSize
       }
-      if (this.searchForm.name !== '') {
-        params.name = this.searchForm.name
+      if (this.searchForm.Name !== '') {
+        params.Name = this.searchForm.Name
       }
       this.spinning = true
       api.getFaces(params).then(res => {
+        console.log(res)
         if (res.status >= 200 && res.status < 300) {
           this.datalist = this.datalist.concat(res.data.data)
           this.spinning = false
@@ -328,16 +335,14 @@ export default {
         this.$message.error('请选择图片文件!')
         return false
       }
+      var self = this
+      getBase64_(file, imageUrl => {
+        self.addForm.faceBase64.push(imageUrl.substring(imageUrl.indexOf(',') + 1))
+      })
       return false
     },
     handleChange_add ({ fileList }) {
       this.fileList_add = fileList
-      var self = this
-      fileList.forEach(function (element, index) {
-        getBase64_(element, imageUrl => {
-          self.addForm.faceBase64.push(imageUrl.substring(imageUrl.indexOf(',') + 1))
-        })
-      })
     },
     handleRemove_add (file) {
       // this.addForm.faceBase64 = []
@@ -345,26 +350,22 @@ export default {
     handleCancel_add () {
       this.addVisible = false
       this.addForm = {
-        name: '',
-        sex: 1,
+        Name: '',
+        Gender: 1,
         birthday: '',
         faceBase64: []
       }
     },
     handleAdd (e) {
-      if (this.facegroupId === '') {
-        this.$message.error('无效明星库ID！')
-        return
-      }
-      if (this.addForm.name === '') {
+      if (this.addForm.Name === '') {
         this.$message.error('请填写名称！')
         return
       }
-      if (this.addForm.sex === '') {
+      if (this.addForm.Gender === '') {
         this.$message.error('请选择性别！')
         return
       }
-      if (this.addForm.birthday === '') {
+      if (this.addForm.Birthday === '') {
         this.$message.error('请选择出生日期！')
         return
       }
@@ -374,10 +375,9 @@ export default {
       }
 
       var params = {
-        faceGroupId: this.facegroupId,
-        name: this.addForm.name,
-        sex: this.addForm.sex,
-        birthday: moment(this.addForm.birthday).format('YYYY-MM-DD'),
+        Name: this.addForm.Name,
+        Gender: this.addForm.Gender,
+        birthday: moment(this.addForm.Birthday).format('YYYY-MM-DD'),
         faceBase64: this.addForm.faceBase64
       }
       this.addLoading = true
@@ -385,14 +385,13 @@ export default {
         if (res.status >= 200 && res.status < 300) {
           this.datalist.unshift(res.data)
           // this.datalist = []
-          // this.nextPageToken = ''
           // this.getFaces()
 
           this.addVisible = false
           this.addLoading = false
           this.addForm = {
-            name: '',
-            sex: 1,
+            Name: '',
+            Gender: 1,
             birthday: '',
             faceBase64: []
           }
@@ -409,10 +408,21 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
-
-      this.fileList_edit = item.fullUri.map((i, k, arr) => {
-        return { url: i, uid: k }
+      this.fileList_edit = item.Features.map((i, k, arr) => {
+        var item_ = item
+        item_.url = i
+        item_.uid = -(k + 1) + ''
+        return item_
       })
+      // var self = this
+      // for (var i = 0; i < item.Features.length; i++) {
+      //   (function (idx) {
+      //     var item_ = item
+      //     item_.url = item.Features[idx]
+      //     item_.uid = -(idx + 1) + ''
+      //     self.fileList_edit.push(item_)
+      //   })(i)
+      // }
     },
     beforeUpload_edit (file, fileList) {
       const isImg = file.type === 'image/jpeg' || file.type === 'image/png'
@@ -420,16 +430,15 @@ export default {
         this.$message.error('请选择图片文件!')
         return false
       }
+      var self = this
+      self.editForm.faceBase64 = []
+      getBase64_(file, imageUrl => {
+        self.editForm.faceBase64.push(imageUrl.substring(imageUrl.indexOf(',') + 1))
+      })
       return false
     },
     handleChange_edit ({ fileList }) {
       this.fileList_edit = fileList
-      var self = this
-      fileList.forEach(function (element, index) {
-        getBase64_(element, imageUrl => {
-          self.editForm.faceBase64.push(imageUrl.substring(imageUrl.indexOf(',') + 1))
-        })
-      })
     },
     handleRemove_edit (file) {
       // this.editForm.faceBase64 = []
@@ -441,19 +450,15 @@ export default {
       this.editKey = ''
     },
     handleEdit () {
-      if (this.facegroupId === '') {
-        this.$message.error('无效明星库ID！')
-        return
-      }
-      if (this.editForm.name === '') {
+      if (this.editForm.Name === '') {
         this.$message.error('请填写名称！')
         return
       }
-      if (this.editForm.sex === '') {
+      if (this.editForm.Gender === '') {
         this.$message.error('请选择性别！')
         return
       }
-      if (this.editForm.birthday === '') {
+      if (this.editForm.Birthday === '') {
         this.$message.error('请选择出生日期！')
         return
       }
@@ -463,11 +468,10 @@ export default {
       }
 
       var params = {
-        faceGroupId: this.facegroupId,
-        id: this.editForm.id,
-        name: this.editForm.name,
-        sex: this.editForm.sex,
-        birthday: moment(this.editForm.birthday).format('YYYY-MM-DD'),
+        ID: this.editForm.ID,
+        Name: this.editForm.Name,
+        Gender: this.editForm.Gender,
+        birthday: moment(this.editForm.Birthday).format('YYYY-MM-DD'),
         faceBase64: this.editForm.faceBase64
       }
       this.editLoading = true
@@ -475,7 +479,6 @@ export default {
         if (res.status >= 200 && res.status < 300) {
           this.datalist.splice(this.editKey, 1, res.data)
           // this.datalist = []
-          // this.nextPageToken = ''
           // this.getFaces()
 
           this.editVisible = false
@@ -547,6 +550,7 @@ function getBase64 (file) {
 }
 .tableWrap {
   width: 100%;
+  margin-top: 20px;
 }
 .tableImg {
   max-width: 50px;

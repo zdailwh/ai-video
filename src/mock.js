@@ -12,19 +12,16 @@ Random.cword()
 Random.natural()
 
 let templateFace = {
-  'id|2-10000': 2,
-  'create_time': '@datetime',
-  'update_time': '@datetime',
-  'DeletedAt': {
-    'Time': '@datetime',
-    'Valid': false
-  },
+  'ID|2-10000': 2,
+  'CreatedAt': '2020-10-15T17:54:52.43+08:00',
+  'UpdatedAt': '2020-10-15T17:54:52.43+08:00',
   'GroupID': 'default_base_group',
-  'FaceID': '33f84c5b-f51a-4aa5-b8b3-c8014241c240',
-  'name': '@cname',
-  'sex|1-2': 1,
-  'birthday': '@date',
-  'fullUri': [ 'http://10.122.94.101:8080/v5/resources/data?uri=&contentType=image/jpeg', 'http://10.122.94.101:8080/v5/resources/data?uri=&contentType=image/jpeg', 'http://10.122.94.101:8080/v5/resources/data?uri=&contentType=image/jpeg' ]
+  'FaceID': '5fc3ef8c-05fd-4ee5-b5fd-99c08cc8347f',
+  'Name': '张雨绮',
+  'Gender': '',
+  'Birthday': '',
+  'FullURI': 'http://10.122.94.101:8080/v5/resources/data?uri=weed%3A%2F%2F2%2C0b63915c1ec4b1\u0026contentType=image/jpeg',
+  'Features': ['http://aicore.evereasycom.cn/ai-video/static/img/u1.998d5c7.png', 'http://aicore.evereasycom.cn/ai-video/static/img/u1.998d5c7.png']
 }
 
 let templateFaces = {
