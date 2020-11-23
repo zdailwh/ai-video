@@ -16,8 +16,7 @@
         <a-form-model-item label="上传视频" v-if="addForm.type === 1">
           <a-upload
             list-type="picture"
-            action="/apis/api/v1/upload/file"
-            name="videoFile"
+            :beforeUpload="beforeUpload"
             @change="uploadVideoChange"
           >
             <a-button> <a-icon type="upload" /> 选择视频文件 </a-button>
@@ -28,6 +27,9 @@
         </a-form-model-item>
         <a-form-model-item label="任务名称">
           <a-input v-model="addForm.name" />
+        </a-form-model-item>
+        <a-form-model-item label="任务描述">
+          <a-input v-model="addForm.description" />
         </a-form-model-item>
         <a-form-model-item label="选择名人" :wrapperCol="{span: 20}">
           <a-transfer
@@ -122,9 +124,9 @@ export default {
         type: '',
         url: '',
         name: '',
-        repoId: '',
-        rate: 1
+        description: ''
       },
+      videoFile: null,
       typeArr: [ '实时rtsp视频流', '用户上传视频文件', '用户平台录像文件' ]
     }
   },
@@ -134,44 +136,56 @@ export default {
         this.$message.error('请选择任务类型！')
         return
       }
-      if (this.addForm.url === '') {
-        this.$message.error('请填写任务地址！')
-        return
+      if (this.addForm.type === 1) {
+        if (!this.videoFile) {
+          this.$message.error('请选择上传视频文件！')
+          return
+        }
+      } else {
+        if (this.addForm.url === '') {
+          this.$message.error('请填写任务地址！')
+          return
+        }
       }
       if (this.addForm.name === '') {
         this.$message.error('请填写任务名称！')
         return
       }
+      if (this.addForm.description === '') {
+        this.$message.error('请填写任务描述！')
+        return
+      }
       var params = {
         type: this.addForm.type,
-        url: this.addForm.url + '',
         name: this.addForm.name,
-        repoId: this.addForm.repoId,
-        rate: this.addForm.rate
+        description: this.addForm.description
       }
-      this.spinning = true
+      if (this.addForm.type === 1) {
+        params.file = this.videoFile
+      } else {
+        params.url = this.addForm.url
+      }
+      console.log(params)
+      this.addLoading = true
       api.addTask(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
           // this.datalist.unshift(res.data)
-          this.datalist = []
-          this.pageNum = 0
-          this.nextPageToken = ''
-          this.getTasks()
+          this.updateParentData('datalist', [])
+          this.updateParentData('pageNum', 0)
+          this.$emit('getList')
 
-          // this.addVisible = false
           this.updateParentData('addVisible', false)
-          this.spinning = false
+          this.addLoading = false
           this.addForm = {
             type: '',
             url: '',
             name: '',
-            repoId: '',
-            rate: 1
+            description: ''
           }
           this.$message.success('任务创建成功')
         }
       }).catch(error => {
-        this.spinning = false
+        this.addLoading = false
         console.log(error.response)
         this.$message.error(error.response.data.message || '创建出错！')
       })
@@ -180,17 +194,11 @@ export default {
       // this.addVisible = false
       this.updateParentData('addVisible', false)
     },
+    beforeUpload (file, fileList) {
+      return false
+    },
     uploadVideoChange (info) {
-      if (info.file.status !== 'uploading') {
-        console.log(info.file, info.fileList)
-      }
-      if (info.file.status === 'done') {
-        this.$message.success(`${info.file.name} 文件上传成功`)
-        var fileId = info.file.response.fileId
-        this.addForm.url = fileId
-      } else if (info.file.status === 'error') {
-        this.$message.error(`${info.file.name} 文件上传失败.`)
-      }
+      this.videoFile = info.file
     },
     filterOption (inputValue, option) {
       return option.title.indexOf(inputValue) > -1

@@ -38,8 +38,8 @@
             <img class="tableImg" :src="i" />
           </a-popover>
         </span>
-        <span slot="create_time" slot-scope="create_time">
-          {{create_time | dateFormat}}
+        <span slot="CreatedAt" slot-scope="CreatedAt">
+          {{CreatedAt | dateFormat}}
         </span>
         <span slot="action" slot-scope="record, index, idx">
           <a @click="toEdit(record, idx)">编辑</a>
@@ -48,16 +48,16 @@
             title="确定要删除该明星吗?"
             ok-text="删除"
             cancel-text="取消"
-            @confirm="delFace(record.id, idx)"
+            @confirm="delFace(record, idx)"
           >
             <a>删除</a>
           </a-popconfirm>
         </span>
       </a-table>
     </div>
-    <!--创建明星-->
+    <!--创建人脸-->
     <a-modal
-      title="创建明星"
+      title="创建人脸"
       v-model="addVisible"
     >
       <div>
@@ -73,7 +73,7 @@
           <a-form-model-item label="出生日期">
             <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="addForm.Birthday" />
           </a-form-model-item>
-          <a-form-model-item label="特征图">
+          <a-form-model-item label="人脸图">
             <a-upload
               list-type="picture-card"
               :multiple="true"
@@ -102,9 +102,9 @@
         </a-button>
       </template>
     </a-modal>
-    <!--编辑明星-->
+    <!--编辑人脸-->
     <a-modal
-      title="编辑明星"
+      title="编辑人脸"
       v-model="editVisible"
     >
       <div>
@@ -120,7 +120,7 @@
           <a-form-model-item label="出生日期">
             <a-date-picker :locale="locale" format="YYYY-MM-DD" v-model="editForm.Birthday" />
           </a-form-model-item>
-          <a-form-model-item label="特征图">
+          <a-form-model-item label="人脸图">
             <a-upload
               list-type="picture-card"
               :multiple="true"
@@ -223,7 +223,8 @@ const columns = [
   {
     title: '创建时间',
     dataIndex: 'CreatedAt',
-    key: 'CreatedAt'
+    key: 'CreatedAt',
+    scopedSlots: { customRender: 'CreatedAt' }
   },
   {
     title: '操作',
@@ -255,8 +256,8 @@ export default {
       addForm: {
         Name: '',
         Gender: 1,
-        birthday: '',
-        faceBase64: []
+        Birthday: '',
+        files: []
       },
       addLoading: false,
       fileList_add: [],
@@ -270,8 +271,8 @@ export default {
       editForm: {
         // Name: '',
         // Gender: '',
-        // birthday: '',
-        // faceBase64: []
+        // Birthday: '',
+        // files: []
       },
       editLoading: false,
       editItem: {},
@@ -286,7 +287,7 @@ export default {
   filters: {
     dateFormat (val) {
       if (val === '') return ''
-      return moment(val).format('YYYY-MM-DD hh:mm:ss')
+      return moment(val).format('YYYY-MM-DD HH:mm:ss')
     }
   },
   mounted () {
@@ -335,25 +336,31 @@ export default {
         this.$message.error('请选择图片文件!')
         return false
       }
-      var self = this
-      getBase64_(file, imageUrl => {
-        self.addForm.faceBase64.push(imageUrl.substring(imageUrl.indexOf(',') + 1))
-      })
+      // var arr = this.addForm.files || []
+      // arr.push(file)
+      // this.addForm.files = arr
+
+      // var self = this
+      // getBase64_(file, imageUrl => {
+      //   self.addForm.faceBase64.push(imageUrl.substring(imageUrl.indexOf(',') + 1))
+      // })
       return false
     },
     handleChange_add ({ fileList }) {
       this.fileList_add = fileList
+      this.addForm.files = fileList
     },
     handleRemove_add (file) {
-      // this.addForm.faceBase64 = []
+      // this.addForm.files = []
     },
     handleCancel_add () {
       this.addVisible = false
+      this.fileList_add = []
       this.addForm = {
         Name: '',
         Gender: 1,
-        birthday: '',
-        faceBase64: []
+        Birthday: '',
+        files: []
       }
     },
     handleAdd (e) {
@@ -369,7 +376,7 @@ export default {
         this.$message.error('请选择出生日期！')
         return
       }
-      if (!this.addForm.faceBase64.length) {
+      if (!this.addForm.files.length) {
         this.$message.error('请上传明星图片！')
         return
       }
@@ -377,9 +384,10 @@ export default {
       var params = {
         Name: this.addForm.Name,
         Gender: this.addForm.Gender,
-        birthday: moment(this.addForm.Birthday).format('YYYY-MM-DD'),
-        faceBase64: this.addForm.faceBase64
+        Birthday: moment(this.addForm.Birthday).format('YYYY-MM-DD'),
+        files: this.addForm.files
       }
+      console.log(params)
       this.addLoading = true
       api.addFace(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
@@ -389,11 +397,12 @@ export default {
 
           this.addVisible = false
           this.addLoading = false
+          this.fileList_add = []
           this.addForm = {
             Name: '',
             Gender: 1,
-            birthday: '',
-            faceBase64: []
+            Birthday: '',
+            files: []
           }
           this.$message.success('明星创建成功')
         }
@@ -408,21 +417,17 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
-      this.fileList_edit = item.Features.map((i, k, arr) => {
-        var item_ = item
-        item_.url = i
-        item_.uid = -(k + 1) + ''
-        return item_
-      })
-      // var self = this
-      // for (var i = 0; i < item.Features.length; i++) {
-      //   (function (idx) {
-      //     var item_ = item
-      //     item_.url = item.Features[idx]
-      //     item_.uid = -(idx + 1) + ''
-      //     self.fileList_edit.push(item_)
-      //   })(i)
-      // }
+      this.editForm.files = []
+      // this.fileList_edit = item.Features.map((i, k, arr) => {
+      //   var item_ = item
+      //   item_.url = i
+      //   item_.uid = -(k + 1) + ''
+      //   return item_
+      // })
+      // this.fileList_edit = [{
+      //   url: item.FullURI,
+      //   uid: -1
+      // }]
     },
     beforeUpload_edit (file, fileList) {
       const isImg = file.type === 'image/jpeg' || file.type === 'image/png'
@@ -430,21 +435,27 @@ export default {
         this.$message.error('请选择图片文件!')
         return false
       }
-      var self = this
-      self.editForm.faceBase64 = []
-      getBase64_(file, imageUrl => {
-        self.editForm.faceBase64.push(imageUrl.substring(imageUrl.indexOf(',') + 1))
-      })
+      // var arr = this.editForm.files || []
+      // arr.push(file)
+      // this.editForm.files = arr
+
+      // var self = this
+      // self.editForm.faceBase64 = []
+      // getBase64_(file, imageUrl => {
+      //   self.editForm.faceBase64.push(imageUrl.substring(imageUrl.indexOf(',') + 1))
+      // })
       return false
     },
     handleChange_edit ({ fileList }) {
       this.fileList_edit = fileList
+      this.editForm.files = fileList
     },
     handleRemove_edit (file) {
-      // this.editForm.faceBase64 = []
+      // this.editForm.files = []
     },
     handleCancel_edit () {
       this.editVisible = false
+      this.fileList_edit = []
       this.editForm = {}
       this.editItem = {}
       this.editKey = ''
@@ -462,7 +473,7 @@ export default {
         this.$message.error('请选择出生日期！')
         return
       }
-      if (!this.editForm.faceBase64.length) {
+      if (!this.editForm.files.length) {
         this.$message.error('请上传明星图片！')
         return
       }
@@ -471,9 +482,10 @@ export default {
         ID: this.editForm.ID,
         Name: this.editForm.Name,
         Gender: this.editForm.Gender,
-        birthday: moment(this.editForm.Birthday).format('YYYY-MM-DD'),
-        faceBase64: this.editForm.faceBase64
+        Birthday: moment(this.editForm.Birthday).format('YYYY-MM-DD'),
+        files: this.editForm.files
       }
+      console.log(params)
       this.editLoading = true
       api.editFace(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
@@ -483,6 +495,7 @@ export default {
 
           this.editVisible = false
           this.editLoading = false
+          this.fileList_edit = []
           this.editForm = {}
           this.$message.success('明星编辑成功')
         }
@@ -510,9 +523,10 @@ export default {
       this.previewImage = file.url || file.preview
       this.previewVisible = true
     },
-    delFace (id, idx) {
+    delFace (record, idx) {
       var params = {
-        id: id
+        id: record.id,
+        FaceID: record.FaceID
       }
       api.delFace(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
@@ -527,11 +541,11 @@ export default {
   }
 }
 
-function getBase64_ (img, callback) {
-  const reader = new FileReader()
-  reader.addEventListener('load', () => callback(reader.result))
-  reader.readAsDataURL(img)
-}
+// function getBase64_ (img, callback) {
+//   const reader = new FileReader()
+//   reader.addEventListener('load', () => callback(reader.result))
+//   reader.readAsDataURL(img)
+// }
 function getBase64 (file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()

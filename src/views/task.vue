@@ -25,10 +25,57 @@
         <a-button type="primary" @click="addVisible = true;targetKeys = []"><a-icon key="plus" type="plus"/>添加任务</a-button>
       </div>
     </div>
-    <a-divider />
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-spin :spinning="spinning">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID">
+        <span slot="status" slot-scope="status" style="color: #87d068;">
+          {{status === 0? '新建': status === 1? '进行中': '完成'}}
+        </span>
+        <span slot="type" slot-scope="type">
+          {{type === 0? '实时rtsp视频流': type === 1? '用户上传视频文件': '用户平台录像文件'}}
+        </span>
+        <span slot="CreatedAt" slot-scope="CreatedAt">
+          {{CreatedAt | dateFormat}}
+        </span>
+        <span slot="action" slot-scope="record, index, idx">
+          <a @click="toEdit(record, idx, 'edit')">编辑</a>
+          <a-divider type="vertical" />
+          <a-popconfirm
+            title="确定要删除该任务吗?"
+            ok-text="删除"
+            cancel-text="取消"
+            @confirm="delTask(record, idx)"
+          >
+            <a :disabled="record.status === 1">删除</a>
+          </a-popconfirm>
+          <a-divider type="vertical" />
+          <a @click="toEdit(record, idx, 'copy')">复制</a>
+          <a-divider type="vertical" />
+          <template v-if="record.status === 1">
+            <a-popconfirm
+              title="确定要停止该任务吗?"
+              ok-text="停止"
+              cancel-text="取消"
+              @confirm="stop(record, idx)"
+            >
+              <a>停止</a>
+            </a-popconfirm>
+          </template>
+          <template v-else>
+            <a-popconfirm
+              title="确定要执行该任务吗?"
+              ok-text="执行"
+              cancel-text="取消"
+              @confirm="start(record, idx)"
+            >
+              <a>执行</a>
+            </a-popconfirm>
+          </template>
+          <a-divider type="vertical" />
+          <router-link :to="'/video/' + record.id">查看任务结果<a-icon type="right" /></router-link>
+        </span>
+      </a-table>
+<!--       <a-spin :spinning="spinning">
         <div class="cardList">
           <div class="cardItem" v-for="(item, key) in datalist" :key="key">
             <a-card hoverable>
@@ -53,7 +100,6 @@
                   <a-button type="link" icon="delete" title="删除" :disabled="item.status === 1" />
                 </a-popconfirm>
                 <a-button type="link" icon="copy" title="复制" @click="toEdit(item, key, 'copy')" />
-                <!-- <router-link :to="'/video/' + item.id" title="查看任务结果"><a-icon type="solution" /></router-link> -->
                 <template v-if="item.status === 1">
                   <a-popconfirm
                     title="确定要停止该任务吗?"
@@ -79,11 +125,11 @@
             </a-card>
           </div>
         </div>
-      </a-spin>
+      </a-spin> -->
     </div>
 
-    <AddTask :datalist="datalist" :add-visible="addVisible" :mock-data="mockData" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" />
-    <EditTask :datalist="datalist" :edit-visible="editVisible" :mock-data="mockData" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" />
+    <AddTask :datalist="datalist" :add-visible="addVisible" :mock-data="mockData" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" @getList="getTasks" />
+    <EditTask :datalist="datalist" :edit-visible="editVisible" :mock-data="mockData" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" @getList="getTasks" />
 
   </div>
 </template>
@@ -95,11 +141,12 @@ import wlk from '../assets/u5.jpg'
 import wq from '../assets/u4.jpg'
 import AddTask from '../components/AddTask.vue'
 import EditTask from '../components/EditTask.vue'
+var moment = require('moment')
 const columns = [
   {
     title: 'ID',
-    dataIndex: 'id',
-    key: 'id'
+    dataIndex: 'ID',
+    key: 'ID'
   },
   {
     title: '任务名称',
@@ -114,15 +161,28 @@ const columns = [
   {
     title: '状态',
     dataIndex: 'status',
-    key: 'status'
+    key: 'status',
+    scopedSlots: { customRender: 'status' }
   },
   {
-    title: 'monitors',
-    dataIndex: 'monitors',
-    key: 'monitors'
+    title: '类型',
+    dataIndex: 'type',
+    key: 'type',
+    scopedSlots: { customRender: 'type' }
   },
   {
-    title: 'Action',
+    title: '地址',
+    dataIndex: 'url',
+    key: 'url'
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'CreatedAt',
+    key: 'CreatedAt',
+    scopedSlots: { customRender: 'CreatedAt' }
+  },
+  {
+    title: '操作',
     key: 'action',
     scopedSlots: { customRender: 'action' }
   }
@@ -211,6 +271,12 @@ export default {
       editTag: '' // 'edit' || 'copy'
     }
   },
+  filters: {
+    dateFormat (val) {
+      if (val === '') return ''
+      return moment(val).format('YYYY-MM-DD HH:mm:ss')
+    }
+  },
   mounted () {
     var ele = document.querySelectorAll('.file-main')
     ele[0].style.backgroundColor = '#fff'
@@ -227,9 +293,7 @@ export default {
     getTasks () {
       var params = {
         pageNum: this.pageNum,
-        pageSize: this.pageSize,
-        nextPageToken: this.nextPageToken,
-        faceGroupId: this.facegroupId
+        pageSize: this.pageSize
       }
       if (this.searchForm.type !== '') {
         params.type = this.searchForm.type
@@ -272,9 +336,9 @@ export default {
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
     },
-    delTask (id, idx) {
+    delTask (record, idx) {
       var params = {
-        id: id
+        id: record.id
       }
       api.delTask(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
@@ -295,13 +359,36 @@ export default {
       this.targetKeys = ['90-AAABc9vlwQmo265QAAAAAg==', '90-AAABc9uMGzuo265MAAAAAg==']
     },
     start (item, key) {
-      this.datalist[key].status = 1
+      // this.datalist[key].status = 1
+      var params = {
+        id: item.id
+      }
+      api.taskRestart(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist[key].status = 1
+          this.$message.success('任务已重启')
+        }
+      }).catch(error => {
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '任务重启出错！')
+      })
     },
     stop (item, key) {
-      this.datalist[key].status = 2
+      // this.datalist[key].status = 2
+      var params = {
+        id: item.id
+      }
+      api.taskStop(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist[key].status = 2
+          this.$message.success('任务已停止')
+        }
+      }).catch(error => {
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '任务停止出错！')
+      })
     },
     updateData (params) {
-      console.log(params)
       this[params.key] = params.val
     }
   }
@@ -317,6 +404,7 @@ export default {
 }
 .tableWrap {
   width: 100%;
+  margin-top: 20px;
 }
 .searchWrap {
   display: flex;

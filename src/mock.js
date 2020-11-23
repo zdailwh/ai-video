@@ -20,29 +20,28 @@ let templateFace = {
   'Name': '张雨绮',
   'Gender': '',
   'Birthday': '',
-  'FullURI': 'http://10.122.94.101:8080/v5/resources/data?uri=weed%3A%2F%2F2%2C0b63915c1ec4b1\u0026contentType=image/jpeg',
+  'FullURI': 'http://aicore.evereasycom.cn/ai-video/static/img/u1.998d5c7.png',
   'Features': ['http://aicore.evereasycom.cn/ai-video/static/img/u1.998d5c7.png', 'http://aicore.evereasycom.cn/ai-video/static/img/u1.998d5c7.png']
 }
 
 let templateFaces = {
-  'data|1-10': [templateFace]
+  'count': 54,
+  'data|1-54': [templateFace]
 }
 
 let templateVideo = {
   'ID|2-10000': 2,
-  'create_time': '@datetime',
-  'update_time': '@datetime',
+  'CreatedAt': '2020-09-01T10:42:46.254Z',
+  'UpdatedAt': '2020-09-01T10:42:46.254Z',
   'DeletedAt': {
-    'Time': '@datetime',
+    'Time': '0001-01-01T00:00:00Z',
     'Valid': false
   },
-  'name': '任务名称',
-  'description': '任务描述',
+  'name': 'test1',
+  'description': 'hank-test',
   'status|1': [0, 1, 2], // 0新建，1进⾏中，2完成
-  'type|0-2': 0,
-  'url': '',
-  'repoId|2-10000': 2,
-  'rate|0-100': 50
+  'type': 'off_line',
+  'url': ''
 }
 
 let templateVideos = {

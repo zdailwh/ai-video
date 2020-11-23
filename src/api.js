@@ -46,20 +46,19 @@ export default {
   async addFace (params) {
     if (process.env.NODE_ENV === 'production') {
       var res = await axios.post('/api/v2/face', {
-        faceGroupId: params.faceGroupId,
-        name: params.name,
-        desc: params.desc,
-        sex: params.sex,
-        birthday: params.birthday,
-        faceBase64: params.faceBase64
+        name: params.Name,
+        desc: params.Desc,
+        gender: params.Gender,
+        birthday: params.Birthday,
+        file: params.file
       })
       return res
     } else {
       const data = await await timeout(200).then(() => mock.face)
-      data.name = params.name
-      data.desc = params.desc
-      data.sex = params.sex
-      data.birthday = params.birthday
+      data.Name = params.Name
+      data.Desc = params.Desc
+      data.Gender = params.Gender
+      data.Birthday = params.Birthday
       return { status: 200, data: data }
     }
   },
@@ -67,26 +66,26 @@ export default {
   async editFace (params) {
     if (process.env.NODE_ENV === 'production') {
       var res = await axios.put('/api/v2/face/' + params.id, {
-        name: params.name,
-        desc: params.desc,
-        sex: params.sex,
-        birthday: params.birthday,
-        faceBase64: params.faceBase64
+        name: params.Name,
+        desc: params.Desc,
+        gender: params.Gender,
+        birthday: params.Birthday,
+        file: params.file
       })
       return res
     } else {
       const data = await await timeout(200).then(() => mock.face)
-      data.name = params.name
-      data.desc = params.desc
-      data.sex = params.sex
-      data.birthday = params.birthday
+      data.Name = params.Name
+      data.Desc = params.Desc
+      data.Gender = params.Gender
+      data.Birthday = params.Birthday
       return { status: 200, data: data }
     }
   },
 
   async delFace (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.delete('/api/v2/face/' + params.id)
+      var res = await axios.delete('/api/v2/face/' + params.FaceID)
       return res
     } else {
       return { status: 200 }
@@ -112,15 +111,33 @@ export default {
     }
   },
 
+  async addFeature (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.post('/api/v2/feature', {
+        name: params.name,
+        desc: params.desc
+      })
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.feature)
+      data.name = params.name
+      data.desc = params.desc
+      return { status: 200, data: data }
+    }
+  },
+
+  async delFeature (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.delete('/api/v2/feature/' + params.id)
+      return res
+    } else {
+      return { status: 200 }
+    }
+  },
+
   async addTask (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post('/api/v2/task', {
-        type: params.type,
-        url: params.url,
-        name: params.name,
-        repoId: params.repoId,
-        rate: params.rate
-      })
+      var res = await axios.post('/api/v2/video', params)
       return res
     } else {
       const data = await await timeout(200).then(() => mock.video)
@@ -130,13 +147,7 @@ export default {
 
   async editTask (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post('/api/v2/task', {
-        type: params.type,
-        url: params.url,
-        name: params.name,
-        repoId: params.repoId,
-        rate: params.rate
-      })
+      var res = await axios.put('/api/v2/video', params)
       return res
     } else {
       const data = await await timeout(200).then(() => mock.video)
@@ -146,7 +157,7 @@ export default {
 
   async delTask (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.delete('/api/v2/task/' + params.id + '?type=0')
+      var res = await axios.delete('/api/v2/video/' + params.id)
       return res
     } else {
       return { status: 200 }
@@ -155,13 +166,12 @@ export default {
 
   async getTasks (params) {
     if (process.env.NODE_ENV === 'production') {
-      var res = await axios.get('/api/v2/task', {
+      var res = await axios.get('/api/v2/video', {
         params: {
           type: params.type,
           taskId: params.taskId,
-          pageNum: params.pageNum,
-          pageSize: params.pageSize,
-          nextPageToken: params.nextPageToken
+          page_num: params.pageNum,
+          limit: params.pageSize
         }
       })
       return res
@@ -171,8 +181,28 @@ export default {
     }
   },
 
+  async taskStop (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.post('/api/v2/video/stop/' + params.id)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.video)
+      return { status: 200, data: data }
+    }
+  },
+
+  async taskRestart (params) {
+    if (process.env.NODE_ENV === 'production') {
+      var res = await axios.post('/api/v2/video/restart/' + params.id)
+      return res
+    } else {
+      const data = await await timeout(200).then(() => mock.video)
+      return { status: 200, data: data }
+    }
+  },
+
   async getTaskResults (params) {
-    var res = await axios.get('/api/v2/new_task_result/' + params.taskId)
+    var res = await axios.get('/api/v2/video/result/' + params.taskId)
     return res
   },
 

@@ -287,7 +287,7 @@ export default {
           2048: '无法加载视频文件，跨域访问被拒绝'
         },
         listener: function (msg) {
-          console.log('listener:', msg)
+          // console.log('listener:', msg)
           // if (msg.type === 'play') {
           //   self.videoPlay()
           // }

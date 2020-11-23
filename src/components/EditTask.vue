@@ -16,8 +16,7 @@
         <a-form-model-item label="上传视频" v-if="editForm.type === 1">
           <a-upload
             list-type="picture"
-            action="/apis/api/v1/upload/file"
-            name="videoFile"
+            :beforeUpload="beforeUpload"
             @change="uploadVideoChange"
           >
             <a-button> <a-icon type="upload" /> 选择视频文件 </a-button>
@@ -28,6 +27,9 @@
         </a-form-model-item>
         <a-form-model-item label="任务名称">
           <a-input v-model="editForm.name" />
+        </a-form-model-item>
+        <a-form-model-item label="任务描述">
+          <a-input v-model="editForm.description" />
         </a-form-model-item>
         <a-form-model-item label="选择名人" :wrapperCol="{span: 20}">
           <a-transfer
@@ -112,7 +114,7 @@ const rightTableColumns = [
   }
 ]
 export default {
-  props: [ 'datalist', 'editVisible', 'mockData', 'targetKeys', 'selectedKeys', 'smallLayout', 'editTag', 'editForm' ],
+  props: [ 'datalist', 'editVisible', 'mockData', 'targetKeys', 'selectedKeys', 'smallLayout', 'editTag', 'editForm', 'editKey', 'editItem' ],
   data () {
     return {
       leftColumns: leftTableColumns,
@@ -122,8 +124,7 @@ export default {
       //   type: '',
       //   url: '',
       //   name: '',
-      //   repoId: '',
-      //   rate: 1
+      //   description: ''
       // },
       // editItem: {},
       // editKey: '',
@@ -132,46 +133,93 @@ export default {
   },
   methods: {
     handleEdit () {
-      var params = {
+      if (this.editForm.type === '') {
+        this.$message.error('请选择任务类型！')
+        return
       }
-      this.editLoading = true
-      api.editTask(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
-          this.datalist.splice(this.editKey, 1, res.data)
-          // this.datalist = []
-          // this.nextPageToken = ''
-          // this.getFaces()
-
-          // this.editVisible = false
-          this.updateParentData('editVisible', false)
-          this.editLoading = false
-          this.editForm = {}
-          this.$message.success('任务编辑成功')
+      if (this.editForm.type === 1) {
+        if (!this.videoFile) {
+          this.$message.error('请选择上传视频文件！')
+          return
         }
-      }).catch(error => {
-        this.editLoading = false
-        console.log(error.response)
-        this.$message.error(error.response.data.message || '编辑出错！')
-      })
+      } else {
+        if (this.editForm.url === '') {
+          this.$message.error('请填写任务地址！')
+          return
+        }
+      }
+      if (this.editForm.name === '') {
+        this.$message.error('请填写任务名称！')
+        return
+      }
+      if (this.editForm.description === '') {
+        this.$message.error('请填写任务描述！')
+        return
+      }
+      var params = {
+        type: this.editForm.type,
+        name: this.editForm.name,
+        description: this.editForm.description
+      }
+      if (this.editForm.type === 1) {
+        params.file = this.videoFile
+      } else {
+        params.url = this.editForm.url
+      }
+      console.log(params)
+      this.editLoading = true
+      if (this.editTag === 'edit') { // 编辑
+        params.id = this.editItem.id
+        api.editTask(params).then(res => {
+          if (res.status >= 200 && res.status < 300) {
+            // this.datalist.splice(this.editKey, 1, res.data)
+            this.updateParentData('datalist', [])
+            this.updateParentData('pageNum', 0)
+            this.$emit('getList')
+
+            this.updateParentData('editVisible', false)
+            this.editLoading = false
+            this.updateParentData('editForm', {})
+            this.$message.success('任务编辑成功')
+          }
+        }).catch(error => {
+          this.editLoading = false
+          console.log(error.response)
+          this.$message.error(error.response.data.message || '编辑出错！')
+        })
+      } else if (this.editTag === 'copy') { // 复制
+        api.addTask(params).then(res => {
+          if (res.status >= 200 && res.status < 300) {
+            // this.datalist.splice(this.editKey, 1, res.data)
+            this.updateParentData('datalist', [])
+            this.updateParentData('pageNum', 0)
+            this.$emit('getList')
+
+            this.updateParentData('editVisible', false)
+            this.editLoading = false
+            this.updateParentData('editForm', {})
+            this.$message.success('任务复制成功')
+          }
+        }).catch(error => {
+          this.editLoading = false
+          console.log(error.response)
+          this.$message.error(error.response.data.message || '复制出错！')
+        })
+      }
     },
     handleCancel_edit () {
       // this.editVisible = false
       this.updateParentData('editVisible', false)
-      this.editForm = {}
-      this.editItem = {}
-      this.editKey = ''
+
+      this.updateParentData('editForm', {})
+      this.updateParentData('editKey', '')
+      this.updateParentData('editItem', {})
+    },
+    beforeUpload (file, fileList) {
+      return false
     },
     uploadVideoChange (info) {
-      if (info.file.status !== 'uploading') {
-        console.log(info.file, info.fileList)
-      }
-      if (info.file.status === 'done') {
-        this.$message.success(`${info.file.name} 文件上传成功`)
-        var fileId = info.file.response.fileId
-        this.editForm.url = fileId
-      } else if (info.file.status === 'error') {
-        this.$message.error(`${info.file.name} 文件上传失败.`)
-      }
+      this.videoFile = info.file
     },
     filterOption (inputValue, option) {
       return option.title.indexOf(inputValue) > -1
