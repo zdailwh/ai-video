@@ -33,7 +33,7 @@
               创建任务
             </span>
           </a-tab-pane>
-          <a-tab-pane v-for="(record, idx) in datalist" :key="idx" :tab="`任务${idx}`">
+          <a-tab-pane v-for="(record, idx) in datalist" :key="record.ID" :tab="`任务${idx}`">
             <div class="oprateWrap">
               <a-button type="primary" size="small" @click="toEdit(record, idx, 'edit')">编辑</a-button>
               <a-button type="primary" size="small" v-if="record.status === 1" :disabled="true">删除</a-button>
@@ -133,6 +133,43 @@ var stars = [
   }
 ]
 
+var resDemo = [
+  {
+    'faceId': '1-AAABczbmMnw9SqFvAAAAAg==',
+    'name': '张含韵',
+    'time': '1分1秒',
+    '上身纹理': '横条纹:0.82310396',
+    '下身尺寸': '长:0.9772702',
+    '下身类型': '短裙:0.8407891',
+    '下身颜色': '黑色:0.9499273',
+    '人朝向': '前:0.97419655',
+    '体形': '正常:0.99434173',
+    '发型': '长:0.9999629',
+    '头发': '长发',
+    '年龄': '18-30岁:0.9642571',
+    '性别': '女性:0.9999788',
+    '有无带包': '是:0.89711547',
+    '肤色': '黄皮肤'
+  },
+  {
+    'faceId': '2-AAABczbmMnw9SqFvAAAAAg==',
+    'name': '张含韵',
+    'time': '53秒',
+    '上身纹理': '横条纹:0.82310396',
+    '下身尺寸': '长:0.9772702',
+    '下身类型': '短裙:0.8407891',
+    '下身颜色': '黑色:0.9499273',
+    '人朝向': '前:0.97419655',
+    '体形': '正常:0.99434173',
+    '发型': '长:0.9999629',
+    '头发': '长发',
+    '年龄': '18-30岁:0.9642571',
+    '性别': '女性:0.9999788',
+    '有无带包': '是:0.89711547',
+    '肤色': '黄皮肤'
+  }
+]
+
 export default {
   beforeRouteEnter (to, from, next) {
     next()
@@ -142,7 +179,7 @@ export default {
     return {
       smallLayout: false,
       spinning: false,
-      activeTab: 0,
+      activeTab: '',
       searchForm: {
         type: '',
         taskId: ''
@@ -152,46 +189,9 @@ export default {
       pageSize: 10,
       task: {},
       taskId: '',
+      datavideo: {},
+      resDatalist: [],
       taskResItem: {},
-      datavideo: {
-        play_url: 'https://1256993030.vod2.myqcloud.com/d520582dvodtransgzp1256993030/7732bd367447398157015849771/v.f40.mp4'
-      },
-      taskResult: [
-        {
-          'faceId': '1-AAABczbmMnw9SqFvAAAAAg==',
-          'name': '张含韵',
-          'time': '1分1秒',
-          '上身纹理': '横条纹:0.82310396',
-          '下身尺寸': '长:0.9772702',
-          '下身类型': '短裙:0.8407891',
-          '下身颜色': '黑色:0.9499273',
-          '人朝向': '前:0.97419655',
-          '体形': '正常:0.99434173',
-          '发型': '长:0.9999629',
-          '头发': '长发',
-          '年龄': '18-30岁:0.9642571',
-          '性别': '女性:0.9999788',
-          '有无带包': '是:0.89711547',
-          '肤色': '黄皮肤'
-        },
-        {
-          'faceId': '2-AAABczbmMnw9SqFvAAAAAg==',
-          'name': '张含韵',
-          'time': '53秒',
-          '上身纹理': '横条纹:0.82310396',
-          '下身尺寸': '长:0.9772702',
-          '下身类型': '短裙:0.8407891',
-          '下身颜色': '黑色:0.9499273',
-          '人朝向': '前:0.97419655',
-          '体形': '正常:0.99434173',
-          '发型': '长:0.9999629',
-          '头发': '长发',
-          '年龄': '18-30岁:0.9642571',
-          '性别': '女性:0.9999788',
-          '有无带包': '是:0.89711547',
-          '肤色': '黄皮肤'
-        }
-      ],
       addVisible: false,
       editVisible: false,
       mockData: stars,
@@ -215,8 +215,8 @@ export default {
     }
 
     this.getTasks()
-    this.resDatalist = this.taskResult
-    this.createPlayer()
+    // this.resDatalist = resDemo
+    // this.createPlayer()
   },
   methods: {
     getTasks () {
@@ -249,6 +249,9 @@ export default {
           // }
           this.datalist = this.datalist.concat(res.data.data)
           this.spinning = false
+          if (this.datalist.length) {
+            this.activeTab = 1
+          }
         }
       }).catch(error => {
         this.spinning = false
@@ -260,12 +263,48 @@ export default {
       if (tab === 'add') {
         this.addVisible = true
         this.targetKeys = []
+      } else {
+        this.getPlayurl(tab)
+        this.getTaskResults(tab)
       }
     },
+    getPlayurl (tid) {
+      var params = {
+        taskId: tid
+      }
+      api.getTasks(params).then(res => {
+        console.log(res)
+        if (res.status >= 200 && res.status < 300) {
+          this.datavideo = res.data.data[0] || {}
+          if (this.datavideo) {
+            this.createPlayer()
+          }
+        }
+      }).catch(error => {
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '获取任务详情出错！')
+      })
+    },
+    getTaskResults (tid) {
+      var params = {
+        taskId: tid
+      }
+      api.getTaskResults(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          // res.data.map((value, index, array) => {
+          //   value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
+          // })
+          this.resDatalist = res.data.data || resDemo || []
+        }
+      }).catch(error => {
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '任务结果获取出错！')
+      })
+    },
     createPlayer () {
-      var url = this.datavideo.play_url
+      var url = this.datavideo.play_url || 'https://1256993030.vod2.myqcloud.com/d520582dvodtransgzp1256993030/7732bd367447398157015849771/v.f40.mp4'
       // var url = this.task.url
-
+      document.querySelector('#tcplayer').innerHTML = ''
       var player = new TcPlayer('tcplayer', {
         mp4: url,
         autoplay: true,

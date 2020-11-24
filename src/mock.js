@@ -31,17 +31,18 @@ let templateFaces = {
 
 let templateVideo = {
   'ID|2-10000': 2,
-  'CreatedAt': '2020-09-01T10:42:46.254Z',
-  'UpdatedAt': '2020-09-01T10:42:46.254Z',
+  'CreatedAt': '2020-10-15T18:43:24.842+08:00',
+  'UpdatedAt': '2020-10-15T18:43:24.842+08:00',
   'DeletedAt': {
     'Time': '0001-01-01T00:00:00Z',
     'Valid': false
   },
-  'name': 'test1',
+  'name': 'test20200915-4',
   'description': 'hank-test',
   'status|1': [0, 1, 2], // 0新建，1进⾏中，2完成
-  'type': 'off_line',
-  'url': ''
+  'stream_type': 'offline',
+  'threshold': 90,
+  'type': '1'
 }
 
 let templateVideos = {

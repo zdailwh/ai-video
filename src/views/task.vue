@@ -159,21 +159,22 @@ const columns = [
     key: 'description'
   },
   {
-    title: '状态',
-    dataIndex: 'status',
-    key: 'status',
-    scopedSlots: { customRender: 'status' }
+    title: '流类型',
+    dataIndex: 'stream_type',
+    key: 'stream_type',
+    scopedSlots: { customRender: 'stream_type' }
   },
   {
-    title: '类型',
+    title: '任务类型',
     dataIndex: 'type',
     key: 'type',
     scopedSlots: { customRender: 'type' }
   },
   {
-    title: '地址',
-    dataIndex: 'url',
-    key: 'url'
+    title: '状态',
+    dataIndex: 'status',
+    key: 'status',
+    scopedSlots: { customRender: 'status' }
   },
   {
     title: '创建时间',
