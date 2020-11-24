@@ -26,30 +26,33 @@
         </div>
       </div>
       <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
-        <a-tabs :default-active-key="1" size="small" @change="callback">
+        <a-tabs v-model="activeTab" size="small" @change="tabChange">
           <a-tab-pane key="add">
             <span slot="tab">
               <a-icon type="plus" />
               创建任务
             </span>
           </a-tab-pane>
-          <a-tab-pane v-for="i in 3" :key="i" :tab="`任务${i}`">
+          <a-tab-pane v-for="(record, idx) in datalist" :key="idx" :tab="`任务${idx}`">
             <div class="oprateWrap">
-              <a-button type="primary" size="small" @click="toEdit('edit')">编辑</a-button>
+              <a-button type="primary" size="small" @click="toEdit(record, idx, 'edit')">编辑</a-button>
+              <a-button type="primary" size="small" v-if="record.status === 1" :disabled="true">删除</a-button>
               <a-popconfirm
-                  title="确定要删除该任务吗?"
-                  ok-text="删除"
-                  cancel-text="取消"
-                >
+                v-else
+                title="确定要删除该任务吗?"
+                ok-text="删除"
+                cancel-text="取消"
+                @confirm="delTask(record, idx)"
+              >
                 <a-button type="primary" size="small">删除</a-button>
               </a-popconfirm>
-              <a-button type="primary" size="small" @click="toEdit('copy')">复制</a-button>
+              <a-button type="primary" size="small" @click="toEdit(record, idx, 'copy')">复制</a-button>
               <a-popconfirm
-                  v-if="status === 1"
+                  v-if="record.status === 1"
                   title="确定要停止该任务吗?"
                   ok-text="停止"
                   cancel-text="取消"
-                  @confirm="stop"
+                  @confirm="stop(record, idx)"
                 >
                 <a-button type="danger" size="small">停止</a-button>
               </a-popconfirm>
@@ -58,12 +61,12 @@
                   title="确定要执行该任务吗?"
                   ok-text="执行"
                   cancel-text="取消"
-                  @confirm="start"
+                  @confirm="start(record, idx)"
                 >
                 <a-button type="primary" size="small">执行</a-button>
               </a-popconfirm>
             </div>
-            <Face :taskresult="datalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
+            <Face :taskresult="resDatalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
           </a-tab-pane>
         </a-tabs>
       </div>
@@ -95,6 +98,7 @@ var stars = [
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABdB9IjLv0dekZAAAAAQ==',
     id: '90-AAABdB9IjLv0dekZAAAAAQ==',
+    Name: '张雨绮',
     title: '张雨绮'
   },
   {
@@ -104,6 +108,7 @@ var stars = [
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABc9vlwQmo265QAAAAAg==',
     id: '90-AAABc9vlwQmo265QAAAAAg==',
+    Name: '宁静',
     title: '宁静'
   },
   {
@@ -113,6 +118,7 @@ var stars = [
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABc9vla-mo265PAAAAAQ==',
     id: '90-AAABc9vla-mo265PAAAAAQ==',
+    Name: '王丽坤',
     title: '王丽坤'
   },
   {
@@ -122,16 +128,10 @@ var stars = [
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABc9uMGzuo265MAAAAAg==',
     id: '90-AAABc9uMGzuo265MAAAAAg==',
+    Name: '万茜',
     title: '万茜'
   }
 ]
-
-var assetsBaseurl = ''
-if (process.env.NODE_ENV === 'production') {
-  assetsBaseurl = 'http://aicore.evereasycom.cn:8001'
-} else {
-  assetsBaseurl = 'http://127.0.0.1:8001'
-}
 
 export default {
   beforeRouteEnter (to, from, next) {
@@ -140,16 +140,19 @@ export default {
   components: { Setting, Face, AddTask, EditTask },
   data () {
     return {
-      status: 1,
       smallLayout: false,
+      spinning: false,
+      activeTab: 0,
+      searchForm: {
+        type: '',
+        taskId: ''
+      },
       datalist: [],
+      pageNum: 0,
+      pageSize: 10,
       task: {},
       taskId: '',
       taskResItem: {},
-      searchForm: {
-        type: ''
-      },
-      typeArr: [ '张含韵', '张雨绮', '宁静', '伊能静' ],
       datavideo: {
         play_url: 'https://1256993030.vod2.myqcloud.com/d520582dvodtransgzp1256993030/7732bd367447398157015849771/v.f40.mp4'
       },
@@ -191,17 +194,10 @@ export default {
       ],
       addVisible: false,
       editVisible: false,
-      typeArr_search: [ '在线视频任务', '离线视频任务' ],
       mockData: stars,
       targetKeys: [],
       selectedKeys: [],
-      editForm: {
-        type: '',
-        url: '',
-        name: '',
-        repoId: '',
-        rate: 1
-      },
+      editForm: {},
       editItem: {},
       editKey: '',
       editTag: '' // 'edit' || 'copy'
@@ -213,60 +209,55 @@ export default {
       this.smallLayout = true
     }
 
-    // this.taskId = this.$route.params.taskId
-    // if (this.taskId) {
-    //   this.getTasks()
-    //   this.getTaskResults()
-    // }
-    this.datalist = this.taskResult
-    this.createPlayer()
-
     var ele = document.querySelectorAll('.file-main')
     if (ele.length) {
       ele[0].style.backgroundColor = '#171819'
     }
+
+    this.getTasks()
+    this.resDatalist = this.taskResult
+    this.createPlayer()
   },
   methods: {
     getTasks () {
       var params = {
-        taskId: this.taskId
+        pageNum: this.pageNum,
+        pageSize: this.pageSize
       }
+      if (this.searchForm.type !== '') {
+        params.type = this.searchForm.type
+      }
+      if (this.searchForm.taskId !== '') {
+        params.taskId = this.searchForm.taskId
+      }
+      this.spinning = true
       api.getTasks(params).then(res => {
+        console.log(res)
         if (res.status >= 200 && res.status < 300) {
-          var task = res.data.data
-          task.url = task.url.replace('http://172.16.44.101:8001', assetsBaseurl)
-          this.task = task
-
-          var widthPlayer = document.querySelector('#tcplayer').offsetWidth
-          this.widthPlayer = widthPlayer
-          this.heightPlayer = widthPlayer * 9 / 16
-          document.querySelector('#tcplayer').style.height = this.heightPlayer + 'px'
-          this.createPlayer()
+          // var tasks = res.data.data.map((value, index, array) => {
+          //   value.url = value.url.replace('http://172.16.44.101:8001', assetsBaseurl)
+          //   return value
+          // })
+          // this.datalist = this.datalist.concat(tasks)
+          // this.pageNum = res.data.pageNum
+          // this.pageSize = res.data.pageSize
+          // this.nextPageToken = res.data.nextPageToken || ''
+          // if (res.data.data.length && res.data.nextPageToken) {
+          //   this.getTasks()
+          // } else {
+          //   this.spinning = false
+          // }
+          this.datalist = this.datalist.concat(res.data.data)
+          this.spinning = false
         }
       }).catch(error => {
+        this.spinning = false
         console.log('error:')
         console.log(error)
       })
     },
-    getTaskResults () {
-      var params = {
-        taskId: this.taskId
-      }
-      api.getTaskResults(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
-          res.data.map((value, index, array) => {
-            value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
-          })
-          this.datalist = res.data || []
-        }
-      }).catch(error => {
-        console.log('error:')
-        console.log(error.response)
-      })
-    },
-    callback (key) {
-      console.log(key)
-      if (key === 'add') {
+    tabChange (tab) {
+      if (tab === 'add') {
         this.addVisible = true
         this.targetKeys = []
       }
@@ -298,16 +289,6 @@ export default {
       })
       window.player = player
     },
-    searchHandleOk () {
-      this.$refs.searchForm.validate(valid => {
-        if (valid) {
-          console.log('submit!')
-        } else {
-          console.log('error submit!!')
-          return false
-        }
-      })
-    },
     videoFixed (params) {
       var timeStr = params.currentTime
       var h = 0
@@ -331,22 +312,59 @@ export default {
       console.log(params.item)
       this.taskResItem = params.item
     },
-    toEdit (tag) {
+    delTask (record, idx) {
+      var params = {
+        id: record.id
+      }
+      api.delTask(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist.splice(idx, 1)
+          this.$message.success('任务删除成功')
+        }
+      }).catch(error => {
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '删除出错！')
+      })
+    },
+    toEdit (item, key, tag) {
       this.editTag = tag
       this.editVisible = true
-      this.editItem = {}
-      this.editKey = 0
-      this.editForm = {}
+      this.editItem = item
+      this.editKey = key
+      this.editForm = item
       this.targetKeys = ['90-AAABc9vlwQmo265QAAAAAg==', '90-AAABc9uMGzuo265MAAAAAg==']
     },
-    start () {
-      this.status = 1
+    start (item, key) {
+      // this.datalist[key].status = 1
+      var params = {
+        id: item.id
+      }
+      api.taskRestart(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist[key].status = 1
+          this.$message.success('任务已重启')
+        }
+      }).catch(error => {
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '任务重启出错！')
+      })
     },
-    stop () {
-      this.status = 2
+    stop (item, key) {
+      // this.datalist[key].status = 2
+      var params = {
+        id: item.id
+      }
+      api.taskStop(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist[key].status = 2
+          this.$message.success('任务已停止')
+        }
+      }).catch(error => {
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '任务停止出错！')
+      })
     },
     updateData (params) {
-      console.log(params)
       this[params.key] = params.val
     }
   }

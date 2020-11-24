@@ -3,6 +3,9 @@
     :title="editTag === 'edit'? '编辑任务': '创建任务'"
     width="700px"
     v-model="editVisible"
+    :closable="false"
+    :keyboard="false"
+    :maskClosable="false"
   >
     <div>
       <a-form-model :model="editForm" :label-col="{span:4}" :wrapper-col="{span:14}">
@@ -71,8 +74,8 @@
                   })
                 "
               >
-              <template slot="fullUri" slot-scope="url">
-                <img :src="url" style="max-width: 50px;max-height: 50px;">
+              <template slot="fullUri" slot-scope="fullUri">
+                <img :src="fullUri" style="max-width: 50px;max-height: 50px;">
               </template>
               </a-table>
             </template>
@@ -98,7 +101,8 @@ import api from '../api'
 const leftTableColumns = [
   {
     dataIndex: 'title',
-    title: '姓名'
+    title: '姓名',
+    scopedSlots: { customRender: 'Name' }
   },
   {
     dataIndex: 'fullUri',
@@ -110,7 +114,14 @@ const leftTableColumns = [
 const rightTableColumns = [
   {
     dataIndex: 'title',
-    title: '姓名'
+    title: '姓名',
+    scopedSlots: { customRender: 'Name' }
+  },
+  {
+    dataIndex: 'fullUri',
+    title: '头像',
+    width: '50px',
+    scopedSlots: { customRender: 'fullUri' }
   }
 ]
 export default {
@@ -243,14 +254,16 @@ export default {
       }
     },
     handleChange (nextTargetKeys, direction, moveKeys) {
-      this.targetKeys = nextTargetKeys
+      // this.targetKeys = nextTargetKeys
+      this.updateParentData('targetKeys', nextTargetKeys)
 
       console.log('targetKeys: ', nextTargetKeys)
       console.log('direction: ', direction)
       console.log('moveKeys: ', moveKeys)
     },
     handleSelectChange (sourceSelectedKeys, targetSelectedKeys) {
-      this.selectedKeys = [...sourceSelectedKeys, ...targetSelectedKeys]
+      // this.selectedKeys = [...sourceSelectedKeys, ...targetSelectedKeys]
+      this.updateParentData('selectedKeys', [...sourceSelectedKeys, ...targetSelectedKeys])
 
       console.log('sourceSelectedKeys: ', sourceSelectedKeys)
       console.log('targetSelectedKeys: ', targetSelectedKeys)

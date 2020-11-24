@@ -203,6 +203,7 @@ var stars = [
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABdB9IjLv0dekZAAAAAQ==',
     id: '90-AAABdB9IjLv0dekZAAAAAQ==',
+    Name: '张雨绮',
     title: '张雨绮'
   },
   {
@@ -212,6 +213,7 @@ var stars = [
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABc9vlwQmo265QAAAAAg==',
     id: '90-AAABc9vlwQmo265QAAAAAg==',
+    Name: '宁静',
     title: '宁静'
   },
   {
@@ -221,6 +223,7 @@ var stars = [
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABc9vla-mo265PAAAAAQ==',
     id: '90-AAABc9vla-mo265PAAAAAQ==',
+    Name: '王丽坤',
     title: '王丽坤'
   },
   {
@@ -230,6 +233,7 @@ var stars = [
     group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
     key: '90-AAABc9uMGzuo265MAAAAAg==',
     id: '90-AAABc9uMGzuo265MAAAAAg==',
+    Name: '万茜',
     title: '万茜'
   }
 ]
@@ -243,29 +247,21 @@ export default {
     return {
       smallLayout: false,
       spinning: false,
-      datalist: [],
-      pageNum: 0,
-      pageSize: 10,
-      nextPageToken: '',
-      columns,
-      addVisible: false,
-      editVisible: false,
       searchForm: {
         type: '',
         taskId: ''
       },
+      datalist: [],
+      pageNum: 0,
+      pageSize: 10,
+      columns,
+      addVisible: false,
+      editVisible: false,
       typeArr_search: [ '在线视频任务', '离线视频任务' ],
-      facegroupArr: [],
       mockData: stars,
       targetKeys: [],
       selectedKeys: [],
-      editForm: {
-        type: '',
-        url: '',
-        name: '',
-        repoId: '',
-        rate: 1
-      },
+      editForm: {},
       editItem: {},
       editKey: '',
       editTag: '' // 'edit' || 'copy'
@@ -287,7 +283,6 @@ export default {
     }
 
     this.getTasks()
-    this.facegroupArr = this.$store.state.facegroups
   },
   methods: {
     getTasks () {
