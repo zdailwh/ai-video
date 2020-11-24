@@ -368,14 +368,14 @@ export default {
         this.$message.error('请填写名称！')
         return
       }
-      if (this.addForm.Gender === '') {
-        this.$message.error('请选择性别！')
-        return
-      }
-      if (this.addForm.Birthday === '') {
-        this.$message.error('请选择出生日期！')
-        return
-      }
+      // if (this.addForm.Gender === '') {
+      //   this.$message.error('请选择性别！')
+      //   return
+      // }
+      // if (this.addForm.Birthday === '') {
+      //   this.$message.error('请选择出生日期！')
+      //   return
+      // }
       if (!this.addForm.files.length) {
         this.$message.error('请上传明星图片！')
         return
@@ -384,7 +384,7 @@ export default {
       var params = {
         Name: this.addForm.Name,
         Gender: this.addForm.Gender,
-        Birthday: moment(this.addForm.Birthday).format('YYYY-MM-DD'),
+        Birthday: this.addForm.Birthday ? moment(this.addForm.Birthday).format('YYYY-MM-DD') : '',
         files: this.addForm.files
       }
       console.log(params)
@@ -465,14 +465,14 @@ export default {
         this.$message.error('请填写名称！')
         return
       }
-      if (this.editForm.Gender === '') {
-        this.$message.error('请选择性别！')
-        return
-      }
-      if (this.editForm.Birthday === '') {
-        this.$message.error('请选择出生日期！')
-        return
-      }
+      // if (this.editForm.Gender === '') {
+      //   this.$message.error('请选择性别！')
+      //   return
+      // }
+      // if (this.editForm.Birthday === '') {
+      //   this.$message.error('请选择出生日期！')
+      //   return
+      // }
       if (!this.editForm.files.length) {
         this.$message.error('请上传明星图片！')
         return
@@ -482,7 +482,7 @@ export default {
         ID: this.editForm.ID,
         Name: this.editForm.Name,
         Gender: this.editForm.Gender,
-        Birthday: moment(this.editForm.Birthday).format('YYYY-MM-DD'),
+        Birthday: this.editForm.Birthday ? moment(this.editForm.Birthday).format('YYYY-MM-DD') : '',
         files: this.editForm.files
       }
       console.log(params)
