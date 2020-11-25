@@ -72,7 +72,7 @@
             </a-popconfirm>
           </template>
           <a-divider type="vertical" />
-          <router-link :to="'/video/' + record.id">查看任务结果<a-icon type="right" /></router-link>
+          <router-link :to="'/video/' + record.ID">查看任务结果<a-icon type="right" /></router-link>
         </span>
       </a-table>
 <!--       <a-spin :spinning="spinning">

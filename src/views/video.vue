@@ -62,7 +62,7 @@
       </div>
     </div>
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
-      <a-tabs default-active-key="1" size="small" @change="callback">
+      <a-tabs default-active-key="1" size="small" @change="tabChange">
         <a-tab-pane key="1" tab="任务结果">
           <!-- <div class="searchWrap_video">
             <a-form-model ref="searchForm" :model="searchForm" layout="inline">
@@ -81,7 +81,7 @@
               </a-form-model-item>
             </a-form-model>
           </div> -->
-          <Face :taskresult="datalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
+          <Face :taskresult="resDatalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="2" tab="任务基本信息">
           <Setting :taskinfo="task"/>
@@ -96,12 +96,49 @@ import { TcPlayer } from 'tcplayer'
 import Setting from '../components/Setting'
 import Face from '../components/Face'
 
-var assetsBaseurl = ''
-if (process.env.NODE_ENV === 'production') {
-  assetsBaseurl = 'http://aicore.evereasycom.cn:8001'
-} else {
-  assetsBaseurl = 'http://127.0.0.1:8001'
-}
+// var assetsBaseurl = ''
+// if (process.env.NODE_ENV === 'production') {
+//   assetsBaseurl = 'http://aicore.evereasycom.cn:8001'
+// } else {
+//   assetsBaseurl = 'http://127.0.0.1:8001'
+// }
+
+var resDemo = [
+  {
+    'faceId': '1-AAABczbmMnw9SqFvAAAAAg==',
+    'name': '张含韵',
+    'time': '1分1秒',
+    '上身纹理': '横条纹:0.82310396',
+    '下身尺寸': '长:0.9772702',
+    '下身类型': '短裙:0.8407891',
+    '下身颜色': '黑色:0.9499273',
+    '人朝向': '前:0.97419655',
+    '体形': '正常:0.99434173',
+    '发型': '长:0.9999629',
+    '头发': '长发',
+    '年龄': '18-30岁:0.9642571',
+    '性别': '女性:0.9999788',
+    '有无带包': '是:0.89711547',
+    '肤色': '黄皮肤'
+  },
+  {
+    'faceId': '2-AAABczbmMnw9SqFvAAAAAg==',
+    'name': '张含韵',
+    'time': '53秒',
+    '上身纹理': '横条纹:0.82310396',
+    '下身尺寸': '长:0.9772702',
+    '下身类型': '短裙:0.8407891',
+    '下身颜色': '黑色:0.9499273',
+    '人朝向': '前:0.97419655',
+    '体形': '正常:0.99434173',
+    '发型': '长:0.9999629',
+    '头发': '长发',
+    '年龄': '18-30岁:0.9642571',
+    '性别': '女性:0.9999788',
+    '有无带包': '是:0.89711547',
+    '肤色': '黄皮肤'
+  }
+]
 
 export default {
   beforeRouteEnter (to, from, next) {
@@ -111,7 +148,7 @@ export default {
   data () {
     return {
       smallLayout: false,
-      datalist: [],
+      resDatalist: [],
       task: {},
       taskId: '',
       taskResItem: {},
@@ -121,43 +158,7 @@ export default {
       typeArr: [ '张含韵', '张雨绮', '宁静', '伊能静' ],
       datavideo: {
         play_url: 'https://1256993030.vod2.myqcloud.com/d520582dvodtransgzp1256993030/7732bd367447398157015849771/v.f40.mp4'
-      },
-      taskResult: [
-        {
-          'faceId': '1-AAABczbmMnw9SqFvAAAAAg==',
-          'name': '张含韵',
-          'time': '1分1秒',
-          '上身纹理': '横条纹:0.82310396',
-          '下身尺寸': '长:0.9772702',
-          '下身类型': '短裙:0.8407891',
-          '下身颜色': '黑色:0.9499273',
-          '人朝向': '前:0.97419655',
-          '体形': '正常:0.99434173',
-          '发型': '长:0.9999629',
-          '头发': '长发',
-          '年龄': '18-30岁:0.9642571',
-          '性别': '女性:0.9999788',
-          '有无带包': '是:0.89711547',
-          '肤色': '黄皮肤'
-        },
-        {
-          'faceId': '2-AAABczbmMnw9SqFvAAAAAg==',
-          'name': '张含韵',
-          'time': '53秒',
-          '上身纹理': '横条纹:0.82310396',
-          '下身尺寸': '长:0.9772702',
-          '下身类型': '短裙:0.8407891',
-          '下身颜色': '黑色:0.9499273',
-          '人朝向': '前:0.97419655',
-          '体形': '正常:0.99434173',
-          '发型': '长:0.9999629',
-          '头发': '长发',
-          '年龄': '18-30岁:0.9642571',
-          '性别': '女性:0.9999788',
-          '有无带包': '是:0.89711547',
-          '肤色': '黄皮肤'
-        }
-      ]
+      }
     }
   },
   mounted () {
@@ -165,65 +166,58 @@ export default {
     if (viewWidth < 768) {
       this.smallLayout = true
     }
-
-    // this.taskId = this.$route.params.taskId
-    // if (this.taskId) {
-    //   this.getTasks()
-    //   this.getTaskResults()
-    // }
-    this.datalist = this.taskResult
-    this.createPlayer()
-
     var ele = document.querySelectorAll('.file-main')
     if (ele.length) {
       ele[0].style.backgroundColor = '#171819'
     }
+
+    this.taskId = this.$route.params.taskId
+    if (this.taskId) {
+      this.getPlayurl(this.taskId)
+      this.getTaskResults(this.taskId)
+    }
   },
   methods: {
-    getTasks () {
+    getPlayurl (tid) {
       var params = {
-        taskId: this.taskId
+        taskId: tid
       }
       api.getTasks(params).then(res => {
+        console.log(res)
         if (res.status >= 200 && res.status < 300) {
-          var task = res.data.data
-          task.url = task.url.replace('http://172.16.44.101:8001', assetsBaseurl)
-          this.task = task
-
-          var widthPlayer = document.querySelector('#tcplayer').offsetWidth
-          this.widthPlayer = widthPlayer
-          this.heightPlayer = widthPlayer * 9 / 16
-          document.querySelector('#tcplayer').style.height = this.heightPlayer + 'px'
-          this.createPlayer()
+          this.datavideo = res.data.data[0] || {}
+          if (this.datavideo) {
+            this.createPlayer()
+          }
         }
       }).catch(error => {
-        console.log('error:')
-        console.log(error)
+        console.log(error.response)
+        this.$message.error(error.response.data.message || '获取任务详情出错！')
       })
     },
-    getTaskResults () {
+    getTaskResults (tid) {
       var params = {
-        taskId: this.taskId
+        taskId: tid
       }
       api.getTaskResults(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          res.data.map((value, index, array) => {
-            value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
-          })
-          this.datalist = res.data || []
+          // res.data.map((value, index, array) => {
+          //   value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
+          // })
+          this.resDatalist = res.data.data || resDemo || []
         }
       }).catch(error => {
-        console.log('error:')
         console.log(error.response)
+        this.$message.error(error.response.data.message || '任务结果获取出错！')
       })
     },
-    callback (key) {
+    tabChange (key) {
       console.log(key)
     },
     createPlayer () {
-      var url = this.datavideo.play_url
+      var url = this.datavideo.play_url || 'https://1256993030.vod2.myqcloud.com/d520582dvodtransgzp1256993030/7732bd367447398157015849771/v.f40.mp4'
       // var url = this.task.url
-
+      document.querySelector('#tcplayer').innerHTML = ''
       var player = new TcPlayer('tcplayer', {
         mp4: url,
         autoplay: true,
@@ -236,7 +230,7 @@ export default {
           2048: '无法加载视频文件，跨域访问被拒绝'
         },
         listener: function (msg) {
-          console.log('listener:', msg)
+          // console.log('listener:', msg)
           // if (msg.type === 'play') {
           //   self.videoPlay()
           // }
