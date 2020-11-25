@@ -352,6 +352,7 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
+      this.editForm.type = parseInt(this.editForm.type)
       this.targetKeys = ['90-AAABc9vlwQmo265QAAAAAg==', '90-AAABc9uMGzuo265MAAAAAg==']
     },
     start (item, key) {

@@ -26,7 +26,7 @@
         </div>
       </div>
       <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
-        <a-tabs v-model="activeTab" size="small" @change="tabChange">
+        <a-tabs v-model="activeTab" size="small" @change="tabChange" @tabClick="tabClick">
           <a-tab-pane key="add">
             <span slot="tab">
               <a-icon type="plus" />
@@ -179,6 +179,7 @@ export default {
     return {
       smallLayout: false,
       spinning: false,
+      prevTab: '',
       activeTab: '',
       searchForm: {
         type: '',
@@ -215,8 +216,6 @@ export default {
     }
 
     this.getTasks()
-    // this.resDatalist = resDemo
-    // this.createPlayer()
   },
   methods: {
     getTasks () {
@@ -250,7 +249,9 @@ export default {
           this.datalist = this.datalist.concat(res.data.data)
           this.spinning = false
           if (this.datalist.length) {
-            this.activeTab = 1
+            this.activeTab = this.datalist[0].ID
+            this.getPlayurl(this.datalist[0].ID)
+            this.getTaskResults(this.datalist[0].ID)
           }
         }
       }).catch(error => {
@@ -263,10 +264,14 @@ export default {
       if (tab === 'add') {
         this.addVisible = true
         this.targetKeys = []
+        this.activeTab = this.prevTab
       } else {
         this.getPlayurl(tab)
         this.getTaskResults(tab)
       }
+    },
+    tabClick () {
+      this.prevTab = this.activeTab
     },
     getPlayurl (tid) {
       var params = {
@@ -371,6 +376,7 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
+      this.editForm.type = parseInt(this.editForm.type)
       this.targetKeys = ['90-AAABc9vlwQmo265QAAAAAg==', '90-AAABc9uMGzuo265MAAAAAg==']
     },
     start (item, key) {
