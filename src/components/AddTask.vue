@@ -11,12 +11,12 @@
       <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
         <a-form-model-item label="任务类型">
           <a-select v-model="addForm.type">
-            <a-select-option :value="key" v-for="(val,key) in typeArr" v-bind:key="key">
-              {{val}}
+            <a-select-option :value="item.value" v-for="item in typeArr" v-bind:key="item.value">
+              {{item.text}}
             </a-select-option>
           </a-select>
         </a-form-model-item>
-        <a-form-model-item label="上传视频" v-if="addForm.type === 1">
+        <a-form-model-item label="上传视频" v-if="addForm.type === '1'">
           <a-upload
             list-type="picture"
             :beforeUpload="beforeUpload"
@@ -26,7 +26,7 @@
           </a-upload>
         </a-form-model-item>
         <a-form-model-item label="任务地址">
-          <a-input v-model="addForm.url" :disabled="addForm.type === 1" />
+          <a-input v-model="addForm.url" :disabled="addForm.type === '1'" />
         </a-form-model-item>
         <a-form-model-item label="任务名称">
           <a-input v-model="addForm.name" />
@@ -135,10 +135,14 @@ export default {
         type: '',
         url: '',
         name: '',
-        description: ''
+        description: '',
+        files: []
       },
-      videoFile: null,
-      typeArr: [ '实时rtsp视频流', '用户上传视频文件', '用户平台录像文件' ]
+      typeArr: [
+        { value: '0', text: '实时rtsp视频流' },
+        { value: '1', text: '用户上传视频文件' },
+        { value: '2', text: '用户平台录像文件' }
+      ]
     }
   },
   methods: {
@@ -147,8 +151,8 @@ export default {
         this.$message.error('请选择任务类型！')
         return
       }
-      if (this.addForm.type === 1) {
-        if (!this.videoFile) {
+      if (this.addForm.type === '1') {
+        if (!this.addForm.files.length) {
           this.$message.error('请选择上传视频文件！')
           return
         }
@@ -166,21 +170,22 @@ export default {
         this.$message.error('请填写任务描述！')
         return
       }
-      var params = {
-        type: this.addForm.type,
-        name: this.addForm.name,
-        description: this.addForm.description
-      }
-      if (this.addForm.type === 1) {
-        params.file = this.videoFile
+
+      var formdata = new FormData()
+      formdata.append('type', this.addForm.type)
+      formdata.append('name', this.addForm.name)
+      formdata.append('description', this.addForm.description)
+      if (this.addForm.type === '1') {
+        this.addForm.files.map((item, key, arr) => {
+          formdata.append('file', item.originFileObj, item.originFileObj.name)
+        })
       } else {
-        params.url = this.addForm.url
+        formdata.append('url', this.addForm.url)
       }
-      console.log(params)
+
       this.addLoading = true
-      api.addTask(params).then(res => {
+      api.addTask(formdata).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          // this.datalist.unshift(res.data)
           this.updateParentData('datalist', [])
           this.updateParentData('pageNum', 0)
           this.$emit('getList')
@@ -191,7 +196,8 @@ export default {
             type: '',
             url: '',
             name: '',
-            description: ''
+            description: '',
+            files: []
           }
           this.$message.success('任务创建成功')
         }
@@ -208,8 +214,8 @@ export default {
     beforeUpload (file, fileList) {
       return false
     },
-    uploadVideoChange (info) {
-      this.videoFile = info.file
+    uploadVideoChange ({ fileList }) {
+      this.addForm.files = fileList
     },
     filterOption (inputValue, option) {
       return option.title.indexOf(inputValue) > -1

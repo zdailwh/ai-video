@@ -32,7 +32,7 @@
           {{status === 0? '新建': status === 1? '进行中': '完成'}}
         </span>
         <span slot="type" slot-scope="type">
-          {{type === 0? '实时rtsp视频流': type === 1? '用户上传视频文件': '用户平台录像文件'}}
+          {{type === '0'? '实时rtsp视频流': type === '1'? '用户上传视频文件': '用户平台录像文件'}}
         </span>
         <span slot="CreatedAt" slot-scope="CreatedAt">
           {{CreatedAt | dateFormat}}
@@ -333,10 +333,7 @@ export default {
       this.$refs[formName].resetFields()
     },
     delTask (record, idx) {
-      var params = {
-        id: record.ID
-      }
-      api.delTask(params).then(res => {
+      api.delTask({id: record.ID}).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.datalist.splice(idx, 1)
           this.$message.success('任务删除成功')
@@ -352,7 +349,6 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
-      this.editForm.type = parseInt(this.editForm.type)
       this.targetKeys = ['90-AAABc9vlwQmo265QAAAAAg==', '90-AAABc9uMGzuo265MAAAAAg==']
     },
     start (item, key) {

@@ -11,12 +11,12 @@
       <a-form-model :model="editForm" :label-col="{span:4}" :wrapper-col="{span:14}">
         <a-form-model-item label="任务类型">
           <a-select v-model="editForm.type">
-            <a-select-option :value="key" v-for="(val,key) in typeArr" v-bind:key="key">
-              {{val}}
+            <a-select-option :value="item.value" v-for="item in typeArr" v-bind:key="item.value">
+              {{item.text}}
             </a-select-option>
           </a-select>
         </a-form-model-item>
-        <a-form-model-item label="上传视频" v-if="editForm.type === 1">
+        <a-form-model-item label="上传视频" v-if="editForm.type === '1'">
           <a-upload
             list-type="picture"
             :beforeUpload="beforeUpload"
@@ -26,7 +26,7 @@
           </a-upload>
         </a-form-model-item>
         <a-form-model-item label="任务地址">
-          <a-input v-model="editForm.url" :disabled="editForm.type === 1" />
+          <a-input v-model="editForm.url" :disabled="editForm.type === '1'" />
         </a-form-model-item>
         <a-form-model-item label="任务名称">
           <a-input v-model="editForm.name" />
@@ -139,7 +139,11 @@ export default {
       // },
       // editItem: {},
       // editKey: '',
-      typeArr: [ '实时rtsp视频流', '用户上传视频文件', '用户平台录像文件' ]
+      typeArr: [
+        { value: '0', text: '实时rtsp视频流' },
+        { value: '1', text: '用户上传视频文件' },
+        { value: '2', text: '用户平台录像文件' }
+      ]
     }
   },
   methods: {
@@ -148,8 +152,8 @@ export default {
         this.$message.error('请选择任务类型！')
         return
       }
-      if (this.editForm.type === 1) {
-        if (!this.videoFile) {
+      if (this.editForm.type === '1') {
+        if (!this.editForm.files) {
           this.$message.error('请选择上传视频文件！')
           return
         }
@@ -167,39 +171,49 @@ export default {
         this.$message.error('请填写任务描述！')
         return
       }
-      var params = {
-        type: this.editForm.type,
-        name: this.editForm.name,
-        description: this.editForm.description
-      }
-      if (this.editForm.type === 1) {
-        params.file = this.videoFile
-      } else {
-        params.url = this.editForm.url
-      }
-      console.log(params)
-      this.editLoading = true
-      if (this.editTag === 'edit') { // 编辑
-        params.id = this.editItem.id
-        api.editTask(params).then(res => {
-          if (res.status >= 200 && res.status < 300) {
-            // this.datalist.splice(this.editKey, 1, res.data)
-            this.updateParentData('datalist', [])
-            this.updateParentData('pageNum', 0)
-            this.$emit('getList')
 
-            this.updateParentData('editVisible', false)
-            this.editLoading = false
-            this.updateParentData('editForm', {})
-            this.$message.success('任务编辑成功')
+      var formdata = new FormData()
+      formdata.append('type', this.editForm.type)
+      formdata.append('name', this.editForm.name)
+      formdata.append('description', this.editForm.description)
+      if (this.editForm.type === '1') {
+        this.editForm.files.map((item, key, arr) => {
+          formdata.append('file', item.originFileObj, item.originFileObj.name)
+        })
+      } else {
+        formdata.append('url', this.editForm.url)
+      }
+
+      if (this.editTag === 'edit') { // 编辑
+        // 先删除 后新建
+        api.delTask({id: this.editItem.ID}).then(res => {
+          if (res.status >= 200 && res.status < 300) {
+            this.editLoading = true
+            api.addTask(formdata).then(res => {
+              if (res.status >= 200 && res.status < 300) {
+                // this.datalist.splice(this.editKey, 1, res.data)
+                this.updateParentData('datalist', [])
+                this.updateParentData('pageNum', 0)
+                this.$emit('getList')
+
+                this.updateParentData('editVisible', false)
+                this.editLoading = false
+                this.updateParentData('editForm', {})
+                this.$message.success('任务编辑成功')
+              }
+            }).catch(error => {
+              this.editLoading = false
+              console.log(error.response)
+              this.$message.error(error.response.data.message || '编辑出错！')
+            })
           }
         }).catch(error => {
-          this.editLoading = false
           console.log(error.response)
-          this.$message.error(error.response.data.message || '编辑出错！')
+          this.$message.error(error.response.data.message || '删除出错！')
         })
       } else if (this.editTag === 'copy') { // 复制
-        api.addTask(params).then(res => {
+        this.editLoading = true
+        api.addTask(formdata).then(res => {
           if (res.status >= 200 && res.status < 300) {
             // this.datalist.splice(this.editKey, 1, res.data)
             this.updateParentData('datalist', [])
@@ -229,8 +243,8 @@ export default {
     beforeUpload (file, fileList) {
       return false
     },
-    uploadVideoChange (info) {
-      this.videoFile = info.file
+    uploadVideoChange ({ fileList }) {
+      this.editForm.files = fileList
     },
     filterOption (inputValue, option) {
       return option.title.indexOf(inputValue) > -1
