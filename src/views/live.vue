@@ -358,7 +358,7 @@ export default {
     },
     delTask (record, idx) {
       var params = {
-        id: record.id
+        id: record.ID
       }
       api.delTask(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
@@ -382,7 +382,7 @@ export default {
     start (item, key) {
       // this.datalist[key].status = 1
       var params = {
-        id: item.id
+        id: item.ID
       }
       api.taskRestart(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
@@ -397,7 +397,7 @@ export default {
     stop (item, key) {
       // this.datalist[key].status = 2
       var params = {
-        id: item.id
+        id: item.ID
       }
       api.taskStop(params).then(res => {
         if (res.status >= 200 && res.status < 300) {

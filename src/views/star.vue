@@ -20,7 +20,7 @@
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID">
         <span slot="Gender" slot-scope="Gender">
-          {{Gender === 1? '男': '女'}}
+          {{!Gender? '':Gender === 1? '男': '女'}}
         </span>
         <span slot="FullURI" slot-scope="FullURI">
           <a-popover title="">
@@ -33,9 +33,9 @@
         <span slot="Features" slot-scope="Features">
           <a-popover title="" v-for="(i,k) in Features" :key="k">
             <template slot="content">
-              <img class="tablePopImg" :src="i" />
+              <img class="tablePopImg" :src="i.FullURI" />
             </template>
-            <img class="tableImg" :src="i" />
+            <img class="tableImg" :src="i.FullURI" />
           </a-popover>
         </span>
         <span slot="CreatedAt" slot-scope="CreatedAt">
@@ -67,7 +67,7 @@
           </a-form-model-item>
           <a-form-model-item label="性别">
             <a-radio-group name="Gender" v-model="addForm.Gender">
-              <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
+              <a-radio value="1">男</a-radio><a-radio value="2">女</a-radio>
             </a-radio-group>
           </a-form-model-item>
           <a-form-model-item label="出生日期">
@@ -114,7 +114,7 @@
           </a-form-model-item>
           <a-form-model-item label="性别">
             <a-radio-group name="Gender" v-model="editForm.Gender">
-              <a-radio :value="1">男</a-radio><a-radio :value="2">女</a-radio>
+              <a-radio value="1">男</a-radio><a-radio value="2">女</a-radio>
             </a-radio-group>
           </a-form-model-item>
           <a-form-model-item label="出生日期">
@@ -185,6 +185,7 @@
 <script>
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN'
 import api from '../api'
+
 var moment = require('moment')
 const columns = [
   {
@@ -255,7 +256,7 @@ export default {
       columns,
       addForm: {
         Name: '',
-        Gender: 1,
+        Gender: '',
         Birthday: '',
         files: []
       },
@@ -358,7 +359,7 @@ export default {
       this.fileList_add = []
       this.addForm = {
         Name: '',
-        Gender: 1,
+        Gender: '',
         Birthday: '',
         files: []
       }
@@ -380,27 +381,25 @@ export default {
         this.$message.error('请上传明星图片！')
         return
       }
+      var formdata = new FormData()
+      formdata.append('name', this.addForm.Name)
+      formdata.append('gender', this.addForm.Gender)
+      formdata.append('birthday', this.addForm.Birthday ? moment(this.addForm.Birthday).format('YYYY-MM-DD') : '')
+      this.addForm.files.map((item, key, arr) => {
+        formdata.append('files[]', item.originFileObj, item.originFileObj.name)
+      })
 
-      var params = {
-        Name: this.addForm.Name,
-        Gender: this.addForm.Gender,
-        Birthday: this.addForm.Birthday ? moment(this.addForm.Birthday).format('YYYY-MM-DD') : '',
-        files: this.addForm.files
-      }
-      console.log(params)
       this.addLoading = true
-      api.addFace(params).then(res => {
+      api.addFace(formdata).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.datalist.unshift(res.data)
-          // this.datalist = []
-          // this.getFaces()
+          this.getFaces()
 
           this.addVisible = false
           this.addLoading = false
           this.fileList_add = []
           this.addForm = {
             Name: '',
-            Gender: 1,
+            Gender: '',
             Birthday: '',
             files: []
           }
@@ -419,15 +418,11 @@ export default {
       this.editForm = item
       this.editForm.files = []
       // this.fileList_edit = item.Features.map((i, k, arr) => {
-      //   var item_ = item
-      //   item_.url = i
-      //   item_.uid = -(k + 1) + ''
+      //   var item_ = i
+      //   item_.url = i.FullURI
+      //   item_.uid = i.ID
       //   return item_
       // })
-      // this.fileList_edit = [{
-      //   url: item.FullURI,
-      //   uid: -1
-      // }]
     },
     beforeUpload_edit (file, fileList) {
       const isImg = file.type === 'image/jpeg' || file.type === 'image/png'
@@ -478,31 +473,37 @@ export default {
         return
       }
 
-      var params = {
-        ID: this.editForm.ID,
-        Name: this.editForm.Name,
-        Gender: this.editForm.Gender,
-        Birthday: this.editForm.Birthday ? moment(this.editForm.Birthday).format('YYYY-MM-DD') : '',
-        files: this.editForm.files
-      }
-      console.log(params)
-      this.editLoading = true
-      api.editFace(params).then(res => {
-        if (res.status >= 200 && res.status < 300) {
-          this.datalist.splice(this.editKey, 1, res.data)
-          // this.datalist = []
-          // this.getFaces()
+      var formdata = new FormData()
+      formdata.append('name', this.editForm.Name)
+      formdata.append('gender', this.editForm.Gender)
+      formdata.append('birthday', this.editForm.Birthday ? moment(this.editForm.Birthday).format('YYYY-MM-DD') : '')
+      this.editForm.files.map((item, key, arr) => {
+        formdata.append('files[]', item.originFileObj, item.originFileObj.name)
+      })
+      // 先删除 后新建
+      api.delFace({FaceID: this.editItem.FaceID}).then(resDel => {
+        if (resDel.status >= 200 && resDel.status < 300) {
+          this.editLoading = true
+          api.addFace(formdata).then(res => {
+            if (res.status >= 200 && res.status < 300) {
+              this.datalist = []
+              this.getFaces()
 
-          this.editVisible = false
-          this.editLoading = false
-          this.fileList_edit = []
-          this.editForm = {}
-          this.$message.success('明星编辑成功')
+              this.editVisible = false
+              this.editLoading = false
+              this.fileList_edit = []
+              this.editForm = {}
+              this.$message.success('明星编辑成功')
+            }
+          }).catch(error => {
+            this.editLoading = false
+            console.log(error.response)
+            this.$message.error(error.response.data.message || '编辑出错！')
+          })
         }
       }).catch(error => {
-        this.editLoading = false
         console.log(error.response)
-        this.$message.error(error.response.data.message || '编辑出错！')
+        this.$message.error(error.response.data.message || '删除出错！')
       })
     },
     beforeImport (file, fileList) {
@@ -524,11 +525,7 @@ export default {
       this.previewVisible = true
     },
     delFace (record, idx) {
-      var params = {
-        id: record.id,
-        FaceID: record.FaceID
-      }
-      api.delFace(params).then(res => {
+      api.delFace({FaceID: record.FaceID}).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.datalist.splice(idx, 1)
           this.$message.success('明星删除成功')
