@@ -11,7 +11,7 @@
       <a-form-model :model="addForm" :label-col="{span:4}" :wrapper-col="{span:14}">
         <a-form-model-item label="任务类型">
           <a-select v-model="addForm.type">
-            <a-select-option :value="item.value" v-for="item in typeArr" v-bind:key="item.value">
+            <a-select-option v-if="(tag === 'online' && item.text === '实时rtsp视频流') || (tag === 'offline' && item.text !== '实时rtsp视频流')" :value="item.value" v-for="item in typeArr" v-bind:key="item.value">
               {{item.text}}
             </a-select-option>
           </a-select>
@@ -125,7 +125,7 @@ const rightTableColumns = [
   }
 ]
 export default {
-  props: [ 'datalist', 'addVisible', 'mockData', 'targetKeys', 'selectedKeys', 'smallLayout' ],
+  props: [ 'tag', 'datalist', 'addVisible', 'mockData', 'targetKeys', 'selectedKeys', 'smallLayout' ],
   data () {
     return {
       leftColumns: leftTableColumns,
