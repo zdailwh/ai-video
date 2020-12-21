@@ -1,17 +1,17 @@
 <template>
   <div class="faceWrap" :style="smalllayout? 'height: auto;': ''">
     <ul class="listWrap">
-      <li class="list-item" v-for="(fItem,fId) in taskresult" v-bind:key="fId" @click="$emit('videofixed', { currentTime: fItem.time, item: fItem })">
+      <li class="list-item" v-for="(fItem,k) in taskresult" v-bind:key="k" @click="$emit('videofixed', { currentTime: fItem.time, item: fItem })">
         <div class="img-box">
-          <img v-if="fItem.fullUri" :src="fItem.fullUri || '../assets/user.png'" alt="人脸图">
+          <img v-if="fItem.faceImageUri" :src="fItem.faceImageUri" alt="人脸图">
           <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
-          <!-- <p>{{fId}}</p> -->
         </div>
         <div class="desc-box">
           <div class="timeWrap">
             <p>{{fItem.name}}</p>
             <p v-if="fItem['性别']">性别：{{fItem['性别'].indexOf(':') !== -1 ? fItem['性别'].substring(0, fItem['性别'].indexOf(':')): fItem['性别']}}</p>
-            <p>头发：{{fItem['头发']}}</p>
+            <p>性别：{{fItem.Gender.value}}</p>
+            <p>头发：{{fItem.hair.value}}</p>
             <p>时间：{{fItem.time}}</p>
           </div>
         </div>
@@ -25,14 +25,6 @@ export default {
   data () {
     return {
       hideKey: [ 'faceId' ]
-    }
-  },
-  filters: {
-    filterVal (val, key) {
-      if (!val) {
-        return ''
-      }
-      return val
     }
   },
   watch: {

@@ -13,12 +13,12 @@
       </a-form-model>
       <div>
         <a-button type="primary" @click="addVisible = true"><a-icon key="plus" type="plus"/>添加明星</a-button>
-        <a-button type="primary" @click="importVisible = true"><a-icon key="import" type="import"/>批量导入</a-button>
+        <!-- <a-button type="primary" @click="importVisible = true"><a-icon key="import" type="import"/>批量导入</a-button> -->
       </div>
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID" :pagination="false">
         <span slot="Gender" slot-scope="Gender">
           {{!Gender? '':Gender === 1? '男': '女'}}
         </span>
@@ -54,6 +54,22 @@
           </a-popconfirm>
         </span>
       </a-table>
+      <div style="margin: 15px 0;text-align: right;">
+        <a-pagination
+          v-model="pageNum"
+          :page-size-options="pageSizeOptions"
+          :total="dataTotal"
+          show-size-changer
+          :page-size="pageSize"
+          @showSizeChange="onShowSizeChange"
+          @change="onPageChange"
+        >
+          <template slot="buildOptionText" slot-scope="props">
+            <span v-if="props.value !== dataTotal">{{ props.value }}条/页</span>
+            <span v-if="props.value === dataTotal">全部</span>
+          </template>
+        </a-pagination>
+      </div>
     </div>
     <!--创建人脸-->
     <a-modal
@@ -234,13 +250,6 @@ const columns = [
   }
 ]
 
-// var assetsBaseurl = ''
-// if (process.env.NODE_ENV === 'production') {
-//   assetsBaseurl = 'http://aicore.evereasycom.cn:8001'
-// } else {
-//   assetsBaseurl = 'http://127.0.0.1:8001'
-// }
-
 export default {
   beforeRouteEnter (to, from, next) {
     next()
@@ -251,8 +260,10 @@ export default {
       smallLayout: false,
       spinning: false,
       datalist: [],
-      pageNum: 0,
-      pageSize: 10,
+      dataTotal: 0,
+      pageSizeOptions: ['10', '20', '30', '40', '50'],
+      pageNum: 1,
+      pageSize: 20,
       columns,
       addForm: {
         Name: '',
@@ -303,9 +314,21 @@ export default {
     this.getFaces()
   },
   methods: {
-    searchHandleOk () {
-      this.datalist = []
+    onPageChange (current) {
+      this.pageNum = current
       this.getFaces()
+    },
+    onShowSizeChange (current, pageSize) {
+      this.pageSize = pageSize
+      this.getFaces()
+    },
+    searchHandleOk () {
+      this.pageNum = 1
+      if (this.searchForm.Name !== '') {
+        this.getFacesByName()
+      } else {
+        this.getFaces()
+      }
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
@@ -315,14 +338,14 @@ export default {
         pageNum: this.pageNum,
         pageSize: this.pageSize
       }
-      if (this.searchForm.Name !== '') {
-        params.Name = this.searchForm.Name
-      }
       this.spinning = true
       api.getFaces(params).then(res => {
-        console.log(res)
         if (res.status >= 200 && res.status < 300) {
-          this.datalist = this.datalist.concat(res.data.data)
+          this.datalist = res.data.data
+          if (this.pageNum === 1) {
+            this.dataTotal = res.data.count
+            this.$store.commit('setFaceTotal', res.data.count)
+          }
           this.spinning = false
         }
       }).catch(error => {
@@ -392,6 +415,7 @@ export default {
       this.addLoading = true
       api.addFace(formdata).then(res => {
         if (res.status >= 200 && res.status < 300) {
+          this.pageNum = 1
           this.getFaces()
 
           this.addVisible = false
@@ -486,7 +510,7 @@ export default {
           this.editLoading = true
           api.addFace(formdata).then(res => {
             if (res.status >= 200 && res.status < 300) {
-              this.datalist = []
+              this.pageNum = 1
               this.getFaces()
 
               this.editVisible = false
@@ -533,6 +557,29 @@ export default {
       }).catch(error => {
         console.log(error.response)
         this.$message.error(error.response.data.message || '删除出错！')
+      })
+    },
+    getFacesByName () {
+      var params = {
+        pageNum: this.pageNum,
+        pageSize: this.pageSize
+      }
+      if (this.searchForm.Name !== '') {
+        params.name = this.searchForm.Name
+      }
+      this.spinning = true
+      api.getFacesByName(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist = res.data.data
+          if (this.pageNum === 1) {
+            this.dataTotal = res.data.count || res.data.data.length
+          }
+          this.spinning = false
+        }
+      }).catch(error => {
+        this.spinning = false
+        console.log('error:')
+        console.log(error)
       })
     }
   }

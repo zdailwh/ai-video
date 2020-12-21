@@ -36,7 +36,7 @@
         </a-form-model-item>
         <a-form-model-item label="选择名人" :wrapperCol="{span: 20}">
           <a-transfer
-            :data-source="mockData"
+            :data-source="facesData"
             :filter-option="filterOption"
             :showSelectAll="false"
             :showSearch="true"
@@ -74,8 +74,8 @@
                   })
                 "
               >
-              <template slot="fullUri" slot-scope="fullUri">
-                <img :src="fullUri" style="max-width: 50px;max-height: 50px;">
+              <template slot="FullURI" slot-scope="FullURI">
+                <img :src="FullURI" style="max-width: 50px;max-height: 50px;">
               </template>
               </a-table>
             </template>
@@ -105,10 +105,10 @@ const leftTableColumns = [
     scopedSlots: { customRender: 'Name' }
   },
   {
-    dataIndex: 'fullUri',
+    dataIndex: 'FullURI',
     title: '头像',
     width: '50px',
-    scopedSlots: { customRender: 'fullUri' }
+    scopedSlots: { customRender: 'FullURI' }
   }
 ]
 const rightTableColumns = [
@@ -118,14 +118,14 @@ const rightTableColumns = [
     scopedSlots: { customRender: 'Name' }
   },
   {
-    dataIndex: 'fullUri',
+    dataIndex: 'FullURI',
     title: '头像',
     width: '50px',
-    scopedSlots: { customRender: 'fullUri' }
+    scopedSlots: { customRender: 'FullURI' }
   }
 ]
 export default {
-  props: [ 'tag', 'datalist', 'editVisible', 'mockData', 'targetKeys', 'selectedKeys', 'smallLayout', 'editTag', 'editForm', 'editKey', 'editItem' ],
+  props: [ 'tag', 'datalist', 'editVisible', 'facesData', 'targetKeys', 'selectedKeys', 'smallLayout', 'editTag', 'editForm', 'editKey', 'editItem' ],
   data () {
     return {
       leftColumns: leftTableColumns,
@@ -143,7 +143,8 @@ export default {
         { value: '0', text: '实时rtsp视频流' },
         { value: '1', text: '用户上传视频文件' },
         { value: '2', text: '用户平台录像文件' }
-      ]
+      ],
+      targetFaceIds: []
     }
   },
   methods: {
@@ -171,6 +172,10 @@ export default {
         this.$message.error('请填写任务描述！')
         return
       }
+      if (!this.targetFaceIds.length) {
+        this.$message.error('请选择任务关联的人脸！')
+        return
+      }
 
       var formdata = new FormData()
       formdata.append('type', this.editForm.type)
@@ -183,6 +188,7 @@ export default {
       } else {
         formdata.append('url', this.editForm.url)
       }
+      formdata.append('face_ids', this.targetFaceIds.join(','))
 
       if (this.editTag === 'edit') { // 编辑
         // 先删除 后新建
@@ -192,13 +198,13 @@ export default {
             api.addTask(formdata).then(res => {
               if (res.status >= 200 && res.status < 300) {
                 // this.datalist.splice(this.editKey, 1, res.data)
-                this.updateParentData('datalist', [])
-                this.updateParentData('pageNum', 0)
+                this.updateParentData('pageNum', 1)
                 this.$emit('getList')
 
                 this.updateParentData('editVisible', false)
                 this.editLoading = false
                 this.updateParentData('editForm', {})
+                this.targetFaceIds = []
                 this.$message.success('任务编辑成功')
               }
             }).catch(error => {
@@ -216,13 +222,13 @@ export default {
         api.addTask(formdata).then(res => {
           if (res.status >= 200 && res.status < 300) {
             // this.datalist.splice(this.editKey, 1, res.data)
-            this.updateParentData('datalist', [])
-            this.updateParentData('pageNum', 0)
+            this.updateParentData('pageNum', 1)
             this.$emit('getList')
 
             this.updateParentData('editVisible', false)
             this.editLoading = false
             this.updateParentData('editForm', {})
+            this.targetFaceIds = []
             this.$message.success('任务复制成功')
           }
         }).catch(error => {
@@ -270,17 +276,18 @@ export default {
     handleChange (nextTargetKeys, direction, moveKeys) {
       // this.targetKeys = nextTargetKeys
       this.updateParentData('targetKeys', nextTargetKeys)
+      this.targetFaceIds = nextTargetKeys
 
-      console.log('targetKeys: ', nextTargetKeys)
-      console.log('direction: ', direction)
-      console.log('moveKeys: ', moveKeys)
+      // console.log('targetKeys: ', nextTargetKeys)
+      // console.log('direction: ', direction)
+      // console.log('moveKeys: ', moveKeys)
     },
     handleSelectChange (sourceSelectedKeys, targetSelectedKeys) {
       // this.selectedKeys = [...sourceSelectedKeys, ...targetSelectedKeys]
       this.updateParentData('selectedKeys', [...sourceSelectedKeys, ...targetSelectedKeys])
 
-      console.log('sourceSelectedKeys: ', sourceSelectedKeys)
-      console.log('targetSelectedKeys: ', targetSelectedKeys)
+      // console.log('sourceSelectedKeys: ', sourceSelectedKeys)
+      // console.log('targetSelectedKeys: ', targetSelectedKeys)
     },
     updateParentData (key, val) {
       this.$emit('updateData', { key: key, val: val })

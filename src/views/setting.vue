@@ -29,10 +29,18 @@ export default {
     if (viewWidth < 540) {
       this.smallLayout = true
     }
+
+    var storage = window.localStorage
+    var url = storage.getItem('KS_host')
+    if (url) {
+      this.form.hosturl = url
+      this.$store.commit('setHosturl', this.form.hosturl)
+    }
   },
   methods: {
     updateUrl () {
       this.$store.commit('setHosturl', this.form.hosturl)
+      this.$message.success('配置修改成功')
     }
   }
 }

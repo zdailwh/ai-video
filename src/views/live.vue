@@ -1,6 +1,6 @@
 <template>
   <div class="liveWrap">
-    <div class="sliderWrap">
+<!--     <div class="sliderWrap">
       <a-tabs
         :default-active-key="1"
         tab-position="left"
@@ -8,7 +8,7 @@
       >
         <a-tab-pane v-for="i in 10" :key="i" :tab="`频道${i}`"></a-tab-pane>
       </a-tabs>
-    </div>
+    </div> -->
     <div class="videoWrap" :style="smallLayout? 'display: block;': ''">
       <div class="d-left" :style="smallLayout? 'width: 100%;height: auto;': ''">
         <div class="media-wrapper">
@@ -21,7 +21,17 @@
         <div class="locationDetailWrap">
           <h4>人脸详情</h4>
           <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
-            <p v-for="(val, k) in taskResItem" v-bind:key="k"><label>{{k}}：</label>{{val.indexOf(':') !== -1 ? val.substring(0, val.indexOf(':')) : val}}</p>
+            <template v-for="(detail, k) in taskResItem">
+              <p v-if="resLabel[k]" v-bind:key="k">
+                <label>{{resLabel[k]}}：</label>
+                <template v-if="typeof(detail) === 'object'">
+                  {{detail['value']}}（{{detail.confidence | myToFixed}}）
+                </template>
+                <template v-else>
+                  {{detail}}
+                </template>
+              </p>
+            </template>
           </div>
         </div>
       </div>
@@ -33,7 +43,7 @@
               创建任务
             </span>
           </a-tab-pane>
-          <a-tab-pane v-for="(record, idx) in datalist" :key="record.ID" :tab="`任务${idx}`">
+          <a-tab-pane v-for="(record, idx) in datalist" :key="record.ID" :tab="record.name">
             <div class="oprateWrap">
               <a-button type="primary" size="small" @click="toEdit(record, idx, 'edit')">编辑</a-button>
               <a-button type="primary" size="small" v-if="record.status === 1" :disabled="true">删除</a-button>
@@ -72,8 +82,8 @@
       </div>
     </div>
 
-    <AddTask tag="online" :datalist="datalist" :add-visible="addVisible" :mock-data="mockData" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" />
-    <EditTask tag="online" :datalist="datalist" :edit-visible="editVisible" :mock-data="mockData" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" />
+    <AddTask tag="online" :datalist="datalist" :add-visible="addVisible" :faces-data="facesDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" @getList="getTasks" />
+    <EditTask tag="online" :datalist="datalist" :edit-visible="editVisible" :faces-data="facesDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" @getList="getTasks" />
 
   </div>
 </template>
@@ -132,62 +142,116 @@ var stars = [
     title: '万茜'
   }
 ]
-
-var resDemo = [
-  {
-    'faceId': '1-AAABczbmMnw9SqFvAAAAAg==',
-    'name': '张含韵',
-    'time': '1分1秒',
-    '上身纹理': '横条纹:0.82310396',
-    '下身尺寸': '长:0.9772702',
-    '下身类型': '短裙:0.8407891',
-    '下身颜色': '黑色:0.9499273',
-    '人朝向': '前:0.97419655',
-    '体形': '正常:0.99434173',
-    '发型': '长:0.9999629',
-    '头发': '长发',
-    '年龄': '18-30岁:0.9642571',
-    '性别': '女性:0.9999788',
-    '有无带包': '是:0.89711547',
-    '肤色': '黄皮肤'
-  },
-  {
-    'faceId': '2-AAABczbmMnw9SqFvAAAAAg==',
-    'name': '张含韵',
-    'time': '53秒',
-    '上身纹理': '横条纹:0.82310396',
-    '下身尺寸': '长:0.9772702',
-    '下身类型': '短裙:0.8407891',
-    '下身颜色': '黑色:0.9499273',
-    '人朝向': '前:0.97419655',
-    '体形': '正常:0.99434173',
-    '发型': '长:0.9999629',
-    '头发': '长发',
-    '年龄': '18-30岁:0.9642571',
-    '性别': '女性:0.9999788',
-    '有无带包': '是:0.89711547',
-    '肤色': '黄皮肤'
-  }
-]
+var resLabel = {
+  'AgeNum': '年龄',
+  'DressLowerColor': '下身颜色',
+  'DressLowerStyle': '下身类型',
+  'DressUpperCoat': '上身外套',
+  'DressUpperColor': '上身颜色',
+  'DressUpperSize': '上身尺寸',
+  'Gender': '性别',
+  'Orientation': '人朝向',
+  'WearHat': '戴帽子',
+  'beard': '胡子',
+  'expression': '表情',
+  'glasses': '眼镜',
+  'hair': '头发',
+  // 'attributes': '',
+  // 'faceImageUri': '明星人脸',
+  // 'faceRect': '',
+  'face_id': '明星ID',
+  // 'humanImageUri': '人脸图',
+  // 'humanRect': '',
+  'name': '姓名',
+  'time': '时间'
+}
+// var resDemo = [
+//   {
+//     'AgeNum': {
+//       'confidence': '0.5508909453637898',
+//       'value': '⻘年'
+//     },
+//     'DressLowerColor': {
+//       'confidence': '0.6308667659759521',
+//       'value': '⿊'
+//     },
+//     'DressLowerStyle': {
+//       'confidence': '0.9552142918109894',
+//       'value': '⻓裤'
+//     },
+//     'DressUpperCoat': {
+//       'confidence': '0.975117564201355',
+//       'value': '⽆'
+//     },
+//     'DressUpperColor': {
+//       'confidence': '0.6354866623878479',
+//       'value': '⿊'
+//     },
+//     'DressUpperSize': {
+//       'confidence': '0.9683660864830017',
+//       'value': '⻓'
+//     },
+//     'Gender': {
+//       'confidence': '0.8621735572814941',
+//       'value': '⼥性'
+//     },
+//     'Orientation': {
+//       'confidence': '0.9972658157348633',
+//       'value': '前'
+//     },
+//     'WearHat': {
+//       'confidence': '0.9996252059936523',
+//       'value': '⽆'
+//     },
+//     'attributes': [],
+//     'beard': {
+//       'confidence': '0.9999998807907104',
+//       'value': 'bread_no_beard'
+//     },
+//     'expression': {
+//       'confidence': '0.54018754',
+//       'value': '中性'
+//     },
+//     'faceImageUri': 'http://10.122.94.101:8001/v5/resources/data?uri=weed%3A%2F%2F16%2C0bbfbb6616a9e2&contentType=image/jpeg',
+//     'faceRect': '[472.4103698730469,218.06553649902344,720.6224365234375,456.7046813964844]',
+//     'face_id': '5fc3ef8c-05fd-4ee5-b5fd-99c08cc8347f',
+//     'glasses': {
+//       'confidence': '0.9962349534034729',
+//       'value': '没有'
+//     },
+//     'hair': {
+//       'confidence': '0.999660849571228',
+//       'value': '⻓发'
+//     },
+//     'humanImageUri': 'http://10.122.94.101:8001/v5/resources/data?uri=weed%3A%2F%2F16%2C0bbfb8eacbe33c&contentType=image/jpeg',
+//     'humanRect': '',
+//     'name': '张⾬绮',
+//     'time': '12秒'
+//   }
+// ]
 
 export default {
   beforeRouteEnter (to, from, next) {
     next()
   },
   components: { Setting, Face, AddTask, EditTask },
+  filters: {
+    myToFixed (val) {
+      if (!val) return ''
+      return parseFloat(val).toFixed(3)
+    }
+  },
   data () {
     return {
+      stream_type: 'online',
       smallLayout: false,
       spinning: false,
       prevTab: '',
       activeTab: '',
-      searchForm: {
-        type: '',
-        taskId: ''
-      },
       datalist: [],
-      pageNum: 0,
-      pageSize: 10,
+      dataTotal: 0,
+      pageNum: 1,
+      pageSize: 20,
       task: {},
       taskId: '',
       datavideo: {},
@@ -201,7 +265,9 @@ export default {
       editForm: {},
       editItem: {},
       editKey: '',
-      editTag: '' // 'edit' || 'copy'
+      editTag: '', // 'edit' || 'copy'
+      resLabel: resLabel,
+      facesDatalist: []
     }
   },
   mounted () {
@@ -216,37 +282,22 @@ export default {
     }
 
     this.getTasks()
+    this.getAllFaces()
   },
   methods: {
     getTasks () {
       var params = {
         pageNum: this.pageNum,
-        pageSize: this.pageSize
-      }
-      if (this.searchForm.type !== '') {
-        params.type = this.searchForm.type
-      }
-      if (this.searchForm.taskId !== '') {
-        params.taskId = this.searchForm.taskId
+        pageSize: this.pageSize,
+        stream_type: this.stream_type
       }
       this.spinning = true
       api.getTasks(params).then(res => {
-        console.log(res)
         if (res.status >= 200 && res.status < 300) {
-          // var tasks = res.data.data.map((value, index, array) => {
-          //   value.url = value.url.replace('http://172.16.44.101:8001', assetsBaseurl)
-          //   return value
-          // })
-          // this.datalist = this.datalist.concat(tasks)
-          // this.pageNum = res.data.pageNum
-          // this.pageSize = res.data.pageSize
-          // this.nextPageToken = res.data.nextPageToken || ''
-          // if (res.data.data.length && res.data.nextPageToken) {
-          //   this.getTasks()
-          // } else {
-          //   this.spinning = false
-          // }
-          this.datalist = this.datalist.concat(res.data.data)
+          this.datalist = res.data.data
+          if (this.pageNum === 1) {
+            this.dataTotal = res.data.count
+          }
           this.spinning = false
           if (this.datalist.length) {
             this.activeTab = this.datalist[0].ID
@@ -277,10 +328,9 @@ export default {
       var params = {
         taskId: tid
       }
-      api.getTasks(params).then(res => {
-        console.log(res)
+      api.getTasksById(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.datavideo = res.data.data[0] || {}
+          this.datavideo = res.data.data || {}
           if (this.datavideo) {
             this.createPlayer()
           }
@@ -299,7 +349,7 @@ export default {
           // res.data.map((value, index, array) => {
           //   value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
           // })
-          this.resDatalist = res.data.data || resDemo || []
+          this.resDatalist = res.data || []
         }
       }).catch(error => {
         console.log(error.response)
@@ -353,14 +403,10 @@ export default {
       // console.log(h + ':' + m + ':' + s + ':::' + time)
       window.player.currentTime(time)
 
-      console.log(params.item)
       this.taskResItem = params.item
     },
     delTask (record, idx) {
-      var params = {
-        id: record.ID
-      }
-      api.delTask(params).then(res => {
+      api.delTask({id: record.ID}).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.datalist.splice(idx, 1)
           this.$message.success('任务删除成功')
@@ -376,8 +422,7 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
-      this.editForm.type = parseInt(this.editForm.type)
-      this.targetKeys = ['90-AAABc9vlwQmo265QAAAAAg==', '90-AAABc9uMGzuo265MAAAAAg==']
+      this.targetKeys = []
     },
     start (item, key) {
       // this.datalist[key].status = 1
@@ -411,6 +456,25 @@ export default {
     },
     updateData (params) {
       this[params.key] = params.val
+    },
+    getAllFaces () {
+      var params = {
+        pageNum: 1,
+        pageSize: this.$store.state.faceTotal || 100
+      }
+      api.getFaces(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          var faceArr = res.data.data
+          faceArr.map((item, key, arr) => {
+            item.key = item.FaceID
+            item.title = item.Name
+          })
+          this.facesDatalist = faceArr
+        }
+      }).catch(error => {
+        console.log('error:')
+        console.log(error)
+      })
     }
   }
 }

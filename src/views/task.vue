@@ -3,7 +3,7 @@
     <!--搜索-->
     <div class="searchWrap" :style="smallLayout? 'flex-direction: column;': ''">
       <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-        <a-form-model-item label="任务类型" prop="type">
+        <!-- <a-form-model-item label="任务类型" prop="type">
           <a-select v-model="searchForm.type" :dropdownMatchSelectWidth="false">
             <a-select-option value="">
               全部
@@ -12,9 +12,9 @@
               {{val}}
             </a-select-option>
           </a-select>
-        </a-form-model-item>
-        <a-form-model-item label="任务ID" prop="taskId">
-          <a-input v-model="searchForm.taskId" />
+        </a-form-model-item> -->
+        <a-form-model-item label="任务名称" prop="name">
+          <a-input v-model="searchForm.name" />
         </a-form-model-item>
         <a-form-model-item>
           <a-button type="primary" @click="searchHandleOk"><a-icon key="search" type="search"/>搜索</a-button>
@@ -27,7 +27,7 @@
     </div>
     <!--搜索 end-->
     <div class="tableWrap">
-      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID">
+      <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID" :pagination="false">
         <span slot="status" slot-scope="status" style="color: #87d068;">
           {{status === 0? '新建': status === 1? '进行中': '完成'}}
         </span>
@@ -75,70 +75,31 @@
           <router-link :to="'/video/' + record.ID">查看任务结果<a-icon type="right" /></router-link>
         </span>
       </a-table>
-<!--       <a-spin :spinning="spinning">
-        <div class="cardList">
-          <div class="cardItem" v-for="(item, key) in datalist" :key="key">
-            <a-card hoverable>
-              <video slot="cover" :src="item.url"></video>
-              <a-card-meta :title="item.name">
-                <template slot="description">
-                  <p class="desc">{{item.description}}</p>
-                  <p style="display: flex;justify-content: space-between;align-items: center;">
-                    <span style="color: #87d068;">{{item.status === 0? '新建': item.status === 1? '进行中': '完成'}}</span>
-                    <a-button type="link" style="padding: 0;"><router-link :to="'/video/' + item.id">查看任务结果<a-icon type="right" /></router-link></a-button>
-                  </p>
-                </template>
-              </a-card-meta>
-              <template slot="actions" class="ant-card-actions">
-                <a-button type="link" icon="edit" title="编辑" :disabled="item.status === 1" @click="toEdit(item, key, 'edit')" />
-                <a-popconfirm
-                  title="确定要删除该任务吗?"
-                  ok-text="删除"
-                  cancel-text="取消"
-                  @confirm="delTask(item.id, key)"
-                >
-                  <a-button type="link" icon="delete" title="删除" :disabled="item.status === 1" />
-                </a-popconfirm>
-                <a-button type="link" icon="copy" title="复制" @click="toEdit(item, key, 'copy')" />
-                <template v-if="item.status === 1">
-                  <a-popconfirm
-                    title="确定要停止该任务吗?"
-                    ok-text="停止"
-                    cancel-text="取消"
-                    @confirm="stop(item.id, key)"
-                  >
-                    <a-button type="link" icon="stop" title="停止" />
-                  </a-popconfirm>
-                </template>
-                <template v-else>
-                  <a-popconfirm
-                    title="确定要执行该任务吗?"
-                    ok-text="执行"
-                    cancel-text="取消"
-                    @confirm="start(item.id, key)"
-                  >
-                    <a-button type="link" icon="play-circle" title="执行" />
-                  </a-popconfirm>
-                </template>
-
-              </template>
-            </a-card>
-          </div>
-        </div>
-      </a-spin> -->
+      <div style="margin: 15px 0;text-align: right;">
+        <a-pagination
+          v-model="pageNum"
+          :page-size-options="pageSizeOptions"
+          :total="dataTotal"
+          show-size-changer
+          :page-size="pageSize"
+          @showSizeChange="onShowSizeChange"
+          @change="onPageChange"
+        >
+          <template slot="buildOptionText" slot-scope="props">
+            <span v-if="props.value !== dataTotal">{{ props.value }}条/页</span>
+            <span v-if="props.value === dataTotal">全部</span>
+          </template>
+        </a-pagination>
+      </div>
     </div>
 
-    <AddTask tag="offline" :datalist="datalist" :add-visible="addVisible" :mock-data="mockData" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" @getList="getTasks" />
-    <EditTask tag="offline" :datalist="datalist" :edit-visible="editVisible" :mock-data="mockData" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" @getList="getTasks" />
+    <AddTask tag="offline" :datalist="datalist" :add-visible="addVisible" :faces-data="facesDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" @updateData="updateData" @getList="getTasks" />
+    <EditTask tag="offline" :datalist="datalist" :edit-visible="editVisible" :faces-data="facesDatalist" :target-keys="targetKeys" :selected-keys="selectedKeys" :small-layout="smallLayout" :edit-tag="editTag" :edit-form="editForm" :edit-item="editItem" :edit-key="editKey" @updateData="updateData" @getList="getTasks" />
 
   </div>
 </template>
 <script>
 import api from '../api'
-import nj from '../assets/u3.jpg'
-import zyq from '../assets/u1.png'
-import wlk from '../assets/u5.jpg'
-import wq from '../assets/u4.jpg'
 import AddTask from '../components/AddTask.vue'
 import EditTask from '../components/EditTask.vue'
 var moment = require('moment')
@@ -189,53 +150,27 @@ const columns = [
   }
 ]
 
-// var assetsBaseurl = ''
-// if (process.env.NODE_ENV === 'production') {
-//   assetsBaseurl = 'http://aicore.evereasycom.cn:8001'
-// } else {
-//   assetsBaseurl = 'http://127.0.0.1:8001'
-// }
-
 var stars = [
   {
-    create_time: '2020-08-24T07:04:42.427Z',
-    description: '',
-    fullUri: zyq,
-    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
-    key: '90-AAABdB9IjLv0dekZAAAAAQ==',
-    id: '90-AAABdB9IjLv0dekZAAAAAQ==',
-    Name: '张雨绮',
-    title: '张雨绮'
-  },
-  {
-    create_time: '2020-08-11T05:02:14.281Z',
-    description: '宁静',
-    fullUri: nj,
-    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
-    key: '90-AAABc9vlwQmo265QAAAAAg==',
-    id: '90-AAABc9vlwQmo265QAAAAAg==',
-    Name: '宁静',
-    title: '宁静'
-  },
-  {
-    create_time: '2020-08-11T05:01:52.489Z',
-    description: '王丽坤',
-    fullUri: wlk,
-    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
-    key: '90-AAABc9vla-mo265PAAAAAQ==',
-    id: '90-AAABc9vla-mo265PAAAAAQ==',
-    Name: '王丽坤',
-    title: '王丽坤'
-  },
-  {
-    create_time: '2020-08-11T03:24:19.131Z',
-    description: '万茜',
-    fullUri: wq,
-    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
-    key: '90-AAABc9uMGzuo265MAAAAAg==',
-    id: '90-AAABc9uMGzuo265MAAAAAg==',
-    Name: '万茜',
-    title: '万茜'
+    ID: 10,
+    CreatedAt: '2020-12-21T11:21:39.893+08:00',
+    UpdatedAt: '2020-12-21T11:21:39.897+08:00',
+    GroupID: 'default_base_group',
+    FaceID: 'be27bd02-d2b6-43a1-ad16-dbb907784eb9',
+    Name: 'test3',
+    Gender: '1',
+    Birthday: '2000-12-01',
+    FullURI: 'http://10.122.94.101:8080/v5/resources/data?uri=weed%3A%2F%2F543%2C01bc78d9cb95f13c\u0026contentType=image/jpeg',
+    Features: [
+      {
+        ID: 10,
+        CreatedAt: '2020-12-21T11:21:39.895+08:00',
+        UpdatedAt: '2020-12-21T11:21:39.895+08:00',
+        GroupID: 'default_base_group',
+        FaceID: 'be27bd02-d2b6-43a1-ad16-dbb907784eb9',
+        FullURI: 'http://10.122.94.101:8080/v5/resources/data?uri=weed%3A%2F%2F543%2C01bc78d9cb95f13c\u0026contentType=image/jpeg'
+      }
+    ]
   }
 ]
 
@@ -246,15 +181,17 @@ export default {
   },
   data () {
     return {
+      stream_type: 'offline',
       smallLayout: false,
       spinning: false,
       searchForm: {
-        type: '',
-        taskId: ''
+        name: ''
       },
       datalist: [],
-      pageNum: 0,
-      pageSize: 10,
+      dataTotal: 0,
+      pageSizeOptions: ['10', '20', '30', '40', '50'],
+      pageNum: 1,
+      pageSize: 20,
       columns,
       addVisible: false,
       editVisible: false,
@@ -265,7 +202,8 @@ export default {
       editForm: {},
       editItem: {},
       editKey: '',
-      editTag: '' // 'edit' || 'copy'
+      editTag: '', // 'edit' || 'copy'
+      facesDatalist: []
     }
   },
   filters: {
@@ -284,37 +222,41 @@ export default {
     }
 
     this.getTasks()
+    this.getAllFaces()
   },
   methods: {
+    onPageChange (current) {
+      this.pageNum = current
+      this.getTasks()
+    },
+    onShowSizeChange (current, pageSize) {
+      this.pageSize = pageSize
+      this.getTasks()
+    },
+    searchHandleOk () {
+      this.pageNum = 1
+      if (this.searchForm.name !== '') {
+        this.getTasksByName()
+      } else {
+        this.getTasks()
+      }
+    },
+    searchHandleReset (formName) {
+      this.$refs[formName].resetFields()
+    },
     getTasks () {
       var params = {
         pageNum: this.pageNum,
-        pageSize: this.pageSize
-      }
-      if (this.searchForm.type !== '') {
-        params.type = this.searchForm.type
-      }
-      if (this.searchForm.taskId !== '') {
-        params.taskId = this.searchForm.taskId
+        pageSize: this.pageSize,
+        stream_type: this.stream_type
       }
       this.spinning = true
       api.getTasks(params).then(res => {
-        console.log(res)
         if (res.status >= 200 && res.status < 300) {
-          // var tasks = res.data.data.map((value, index, array) => {
-          //   value.url = value.url.replace('http://172.16.44.101:8001', assetsBaseurl)
-          //   return value
-          // })
-          // this.datalist = this.datalist.concat(tasks)
-          // this.pageNum = res.data.pageNum
-          // this.pageSize = res.data.pageSize
-          // this.nextPageToken = res.data.nextPageToken || ''
-          // if (res.data.data.length && res.data.nextPageToken) {
-          //   this.getTasks()
-          // } else {
-          //   this.spinning = false
-          // }
-          this.datalist = this.datalist.concat(res.data.data)
+          this.datalist = res.data.data
+          if (this.pageNum === 1) {
+            this.dataTotal = res.data.count
+          }
           this.spinning = false
         }
       }).catch(error => {
@@ -322,15 +264,6 @@ export default {
         console.log('error:')
         console.log(error)
       })
-    },
-    searchHandleOk () {
-      this.datalist = []
-      this.pageNum = 0
-      this.nextPageToken = ''
-      this.getTasks()
-    },
-    searchHandleReset (formName) {
-      this.$refs[formName].resetFields()
     },
     delTask (record, idx) {
       api.delTask({id: record.ID}).then(res => {
@@ -349,7 +282,7 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
-      this.targetKeys = ['90-AAABc9vlwQmo265QAAAAAg==', '90-AAABc9uMGzuo265MAAAAAg==']
+      this.targetKeys = []
     },
     start (item, key) {
       // this.datalist[key].status = 1
@@ -383,6 +316,49 @@ export default {
     },
     updateData (params) {
       this[params.key] = params.val
+    },
+    getTasksByName () {
+      var params = {
+        pageNum: this.pageNum,
+        pageSize: this.pageSize
+      }
+      if (this.searchForm.name !== '') {
+        params.name = this.searchForm.name
+      }
+      this.spinning = true
+      api.getTasksByName(params).then(res => {
+        console.log(res)
+        if (res.status >= 200 && res.status < 300) {
+          this.datalist = res.data.data
+          if (this.pageNum === 1) {
+            this.dataTotal = res.data.count || res.data.data.length
+          }
+          this.spinning = false
+        }
+      }).catch(error => {
+        this.spinning = false
+        console.log('error:')
+        console.log(error)
+      })
+    },
+    getAllFaces () {
+      var params = {
+        pageNum: 1,
+        pageSize: this.$store.state.faceTotal || 100
+      }
+      api.getFaces(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          var faceArr = res.data.data
+          faceArr.map((item, key, arr) => {
+            item.key = item.FaceID
+            item.title = item.Name
+          })
+          this.facesDatalist = faceArr
+        }
+      }).catch(error => {
+        console.log('error:')
+        console.log(error)
+      })
     }
   }
 }
