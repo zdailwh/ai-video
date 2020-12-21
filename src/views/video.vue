@@ -1,60 +1,14 @@
 <template>
   <div class="videoWrap" :style="smallLayout? 'display: block;': ''">
     <div class="d-left" :style="smallLayout? 'width: 100%;height: auto;': ''">
-      <div class="media-wrapper">
+      <!-- <div class="media-wrapper">
         <div class="media-player">
           <div class="playwrap">
             <div id="tcplayer"></div>
-            <!-- <video src="../assets/demo.mp4" textcaption="" fileid="655352622883841" filename="乘风破浪的姐姐20200616.mp4" filetype="video" commit="true" showcutbtn="1" operate="2" preload="auto" duration="4155" isready="1" style="width: auto; height: 100%; background: rgb(0, 0, 0); padding-top: 50px;" downloadfileid="655356197143552"></video> -->
-<!--             <div class="slider-wrapper"></div>
-            <div class="progress-wrapper">
-              <div class="media-control-group media-control-group--seek">
-                <progress class="media-control media-control--progress" max="100" value="100"></progress>
-                <input type="range" step="any" max="4155.3920" class="media-control media-control--seekbar" value="0" style="background-size: 0% 100%;">
-                <div class="label-sign-box"></div>
-              </div>
-            </div>
-            <div class="media-controls">
-              <div class="controls-left">
-                <div class="video-controll-palypasue--play"></div>
-                <time class="media-control media-control--current-time">00:16:04</time><span>/</span><time class="media-control media-control--duration">01:09:15</time>
-              </div>
-              <div class="controls-right">
-                <div class="constom-volume">
-                  <svg width="36px" height="36px" viewBox="0 0 36 36" class="media-player-control-mute">
-                    <polygon fill="#ecedf2" points="11,14.844 11,21.442 14.202,21.442 17.656,25 17.656,11 14.074,14.844"></polygon>
-                    <g><path fill="#ecedf2" d="M24.024,14.443c-0.607-1.028-1.441-1.807-2.236-2.326c-0.405-0.252-0.796-0.448-1.153-0.597c-0.362-0.139-0.682-0.245-0.954-0.305c-0.058-0.018-0.104-0.023-0.158-0.035v1.202c0.2,0.052,0.421,0.124,0.672,0.22c0.298,0.125,0.622,0.289,0.961,0.497c0.662,0.434,1.359,1.084,1.864,1.94c0.26,0.424,0.448,0.904,0.599,1.401c0.139,0.538,0.193,0.903,0.216,1.616c-0.017,0.421-0.075,1.029-0.216,1.506c-0.151,0.497-0.339,0.977-0.599,1.401c-0.505,0.856-1.202,1.507-1.864,1.94c-0.339,0.209-0.663,0.373-0.961,0.497c-0.268,0.102-0.489,0.174-0.672,0.221v1.201c0.054-0.012,0.1-0.018,0.158-0.035c0.272-0.06,0.592-0.166,0.954-0.305c0.358-0.149,0.748-0.346,1.153-0.597c0.795-0.519,1.629-1.298,2.236-2.326C24.639,20.534,24.994,19.273,25,18C24.994,16.727,24.639,15.466,24.024,14.443z" style="transform: scale(1);"></path></g>
-                    <g><path fill="#ecedf2" d="M21.733,18c0-1.518-0.91-2.819-2.211-3.402v6.804C20.824,20.818,21.733,19.518,21.733,18z" style="transform: scale(1);"></path></g>
-                    <g></g>
-                  </svg>
-                  <input type="range" step="any" min="0" max="1" class="media-control media-control--volume constom-ipt" value="1" style="background-size: 100% 100%;">
-                </div>
-              </div>
-            </div> -->
           </div>
-          <!-- <div class="cut_catalog_dropdown">
-            <ul class="cut_catalog_list">
-              <li class="cut_catalog_item">
-                <span class="title">设置起点 :</span>
-                <input name="min" title="时间格式为 00:00:00" maxlength="8" autocomplete="off" type="text" class="ant-input" value="00:00:00">
-              </li>
-              <li class="cut_catalog_item">
-                <span class="title">设置终点 :</span>
-                <input name="max" title="时间格式为 00:00:00" maxlength="8" autocomplete="off" type="text" class="ant-input" value="00:00:00">
-              </li>
-              <li class="cut_catalog_item">
-                <i class="anticon anticon-close"></i>
-                <span>
-                  <span class="btn btn_ok" style="pointer-events: none; opacity: 0.3;">预览</span>
-                  <span class="btn btn_cancale" style="pointer-events: none; opacity: 0.3;">确认</span>
-                </span>
-              </li>
-            </ul>
-          </div> -->
-
         </div>
-      </div>
-      <div class="locationDetailWrap">
+      </div> -->
+      <div v-if="taskResItem.name" class="locationDetailWrap">
         <h4>人脸详情</h4>
         <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
           <template v-for="(detail, k) in taskResItem">
@@ -68,6 +22,14 @@
               </template>
             </p>
           </template>
+          <p class="resImgs">
+            人脸图：
+            <img :src="taskResItem.faceImageUri">
+          </p>
+          <p class="resImgs">
+            人体图：
+            <img :src="taskResItem.humanImageUri">
+          </p>
         </div>
       </div>
     </div>
@@ -240,7 +202,7 @@ export default {
 
     this.taskId = this.$route.params.taskId
     if (this.taskId) {
-      this.getPlayurl(this.taskId)
+      // this.getPlayurl(this.taskId)
       this.getTaskResults(this.taskId)
     }
   },
@@ -318,41 +280,26 @@ export default {
       })
     },
     videoFixed (params) {
-      var timeStr = params.currentTime
-      var h = 0
-      var m = 0
-      var s = 0
-      if (timeStr.indexOf('时') !== -1) {
-        h = timeStr.substring(0, timeStr.indexOf('时'))
-        timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('时') + 1), '')
-      }
-      if (timeStr.indexOf('分') !== -1) {
-        m = timeStr.substring(0, timeStr.indexOf('分'))
-        timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('分') + 1), '')
-      }
-      if (timeStr.indexOf('秒') !== -1) {
-        s = timeStr.substring(0, timeStr.indexOf('秒'))
-      }
-      var time = parseInt(h * 3600) + parseInt(m * 60) + parseInt(s)
+      // var timeStr = params.currentTime
+      // var h = 0
+      // var m = 0
+      // var s = 0
+      // if (timeStr.indexOf('时') !== -1) {
+      //   h = timeStr.substring(0, timeStr.indexOf('时'))
+      //   timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('时') + 1), '')
+      // }
+      // if (timeStr.indexOf('分') !== -1) {
+      //   m = timeStr.substring(0, timeStr.indexOf('分'))
+      //   timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('分') + 1), '')
+      // }
+      // if (timeStr.indexOf('秒') !== -1) {
+      //   s = timeStr.substring(0, timeStr.indexOf('秒'))
+      // }
+      // var time = parseInt(h * 3600) + parseInt(m * 60) + parseInt(s)
       // console.log(h + ':' + m + ':' + s + ':::' + time)
-      window.player.currentTime(time)
+      // window.player.currentTime(time)
 
       this.taskResItem = params.item
-      // var sliderThumb = document.querySelectorAll('.vcp-slider-thumb')[0]
-      // if (document.querySelectorAll('.absDetailWrap').length) {
-      //   document.querySelectorAll('.absDetailWrap')[0].remove()
-      // }
-      // var detailWrap = document.createElement('div')
-      // detailWrap.setAttribute('class', 'absDetailWrap')
-      // for (let key in params.item) {
-      //   var itemLine = document.createElement('p')
-      //   var val = params.item[key]
-      //   val = val.indexOf(':') !== -1 ? val.substring(0, val.indexOf(':')) : val
-      //   var cont = document.createTextNode(key + '：' + val)
-      //   itemLine.appendChild(cont)
-      //   detailWrap.appendChild(itemLine)
-      // }
-      // sliderThumb.appendChild(detailWrap)
     }
   }
 }
@@ -384,134 +331,6 @@ export default {
 .playwrap {
   padding: 0 5px;
 }
-/*.slider-wrapper {
-  height: 4px;
-  width: 100%;
-  position: absolute;
-  bottom: 58px;
-  z-index: 9999;
-  left: 0;
-  opacity: 0.8;
-  color: #fff;
-  display: block;
-}
-.progress-wrapper {
-  height: 4px;
-  width: 100%;
-  position: absolute;
-  bottom: 46px;
-  z-index: 9999;
-  left: 0;
-  background-color: #232323;
-  opacity: 0.8;
-  color: #fff;
-  display: block;
-}
-.media-control-group {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-.media-control-group--seek {
-  flex: 1;
-}
-.media-control--progress {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 3px;
-  margin: 0;
-  border: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  background-color: #232323;
-  color: #232323;
-}
-.media-control--seekbar {
-  position: absolute;
-  z-index: 5;
-  top: -8px;
-  left: 0;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-progress {
-  vertical-align: baseline;
-}
-input[type="range"] {
-  display: block;
-  width: 100%;
-  height: 20px;
-  background-color: transparent;
-  cursor: pointer;
-}
-.media-controls {
-  position: absolute;
-  padding: 0 5px;
-  display: flex;
-  align-items: center;
-  background-color: #171819;
-  opacity: 0.8;
-  color: #fff;
-  width: 100%;
-  margin-top: -39px;
-  bottom: 0;
-  font-size: 14px;
-  justify-content: space-between;
-}
-.media-controls .controls-left {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-.media-controls .controls-right {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-.video-controll-palypasue--play {
-  width: 36px;
-  height: 36px;
-  display: inline-block;
-  background: url(../assets/play.png) no-repeat center;
-  background-size: contain;
-}
-.media-control {
-  margin: 0 6px;
-}
-.media-control--duration {
-  font-size: 14px;
-  color: #878a8f;
-}
-.constom-volume {
-  position: relative;
-  width: 152px;
-  text-align: left;
-  margin-right: 8px;
-}
-.constom-volume svg {
-  padding-top: 5px;
-  width: 40px;
-  height: 40px;
-  transform-origin: 50% 50%;
-}
-svg:not(:root) {
-  overflow: hidden;
-}
-.constom-ipt {
-  position: absolute;
-  right: 2px;
-  top: 12px;
-  z-index: 2;
-  width: 120px !important;
-  padding-left: 0 !important;
-  background-color: #171819 !important;
-  border-radius: 0px 2px 2px 0px;
-}
-.media-control--volume {
-  max-width: 120px;
-}*/
 
 .cut_catalog_dropdown {
   position: absolute;
@@ -606,5 +425,16 @@ input[type="text"], textarea {
 .locationDetailWrap .locDetail.inlineDetail {
   display: flex;
   flex-wrap: wrap;
+}
+.resImgs {
+  float: left;
+  color: #cecece !important;
+  width: 100px;
+  margin-right: 10px;
+}
+.resImgs img {
+  width: 100px;
+  height: 100px;
+  border: 1px solid #ccc;
 }
 </style>

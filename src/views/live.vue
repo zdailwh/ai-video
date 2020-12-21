@@ -18,7 +18,7 @@
             </div>
           </div>
         </div>
-        <div class="locationDetailWrap">
+        <div v-if="taskResItem.name" class="locationDetailWrap">
           <h4>人脸详情</h4>
           <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
             <template v-for="(detail, k) in taskResItem">
@@ -32,6 +32,14 @@
                 </template>
               </p>
             </template>
+            <p class="resImgs">
+              人脸图：
+              <img :src="taskResItem.faceImageUri">
+            </p>
+            <p class="resImgs">
+              人体图：
+              <img :src="taskResItem.humanImageUri">
+            </p>
           </div>
         </div>
       </div>
@@ -611,5 +619,17 @@ input[type="text"], textarea {
 .locationDetailWrap .locDetail.inlineDetail {
   display: flex;
   flex-wrap: wrap;
+}
+
+.resImgs {
+  float: left;
+  color: #cecece !important;
+  width: 100px;
+  margin-right: 10px;
+}
+.resImgs img {
+  width: 100px;
+  height: 100px;
+  border: 1px solid #ccc;
 }
 </style>
