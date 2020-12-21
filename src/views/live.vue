@@ -422,7 +422,8 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
-      this.targetKeys = []
+      this.editForm.type = parseInt(this.editForm.type)
+      this.targetKeys = this.editForm.face_ids
     },
     start (item, key) {
       // this.datalist[key].status = 1

@@ -235,11 +235,12 @@ export default {
     },
     searchHandleOk () {
       this.pageNum = 1
-      if (this.searchForm.name !== '') {
-        this.getTasksByName()
-      } else {
-        this.getTasks()
-      }
+      // if (this.searchForm.name !== '') {
+      //   this.getTasksByName()
+      // } else {
+      //   this.getTasks()
+      // }
+      this.getTasks()
     },
     searchHandleReset (formName) {
       this.$refs[formName].resetFields()
@@ -249,6 +250,9 @@ export default {
         pageNum: this.pageNum,
         pageSize: this.pageSize,
         stream_type: this.stream_type
+      }
+      if (this.searchForm.name !== '') {
+        params.name = this.searchForm.name
       }
       this.spinning = true
       api.getTasks(params).then(res => {
@@ -282,7 +286,8 @@ export default {
       this.editItem = item
       this.editKey = key
       this.editForm = item
-      this.targetKeys = []
+      this.editForm.type = parseInt(this.editForm.type)
+      this.targetKeys = this.editForm.face_ids
     },
     start (item, key) {
       // this.datalist[key].status = 1

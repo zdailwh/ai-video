@@ -16,7 +16,7 @@
             </a-select-option>
           </a-select>
         </a-form-model-item>
-        <a-form-model-item label="上传视频" v-if="addForm.type === '1'">
+        <a-form-model-item label="上传视频" v-if="addForm.type === 1">
           <a-upload
             list-type="picture"
             :beforeUpload="beforeUpload"
@@ -26,7 +26,7 @@
           </a-upload>
         </a-form-model-item>
         <a-form-model-item label="任务地址">
-          <a-input v-model="addForm.url" :disabled="addForm.type === '1'" />
+          <a-input v-model="addForm.url" :disabled="addForm.type === 1" />
         </a-form-model-item>
         <a-form-model-item label="任务名称">
           <a-input v-model="addForm.name" />
@@ -139,9 +139,8 @@ export default {
         files: []
       },
       typeArr: [
-        { value: '0', text: '实时rtsp视频流' },
-        { value: '1', text: '用户上传视频文件' },
-        { value: '2', text: '用户平台录像文件' }
+        { value: 1, text: '用户上传视频文件' },
+        { value: 2, text: '实时rtsp视频流' }
       ],
       targetFaceIds: []
     }
@@ -152,7 +151,7 @@ export default {
         this.$message.error('请选择任务类型！')
         return
       }
-      if (this.addForm.type === '1') {
+      if (this.addForm.type === 1) {
         if (!this.addForm.files.length) {
           this.$message.error('请选择上传视频文件！')
           return
@@ -180,7 +179,7 @@ export default {
       formdata.append('type', this.addForm.type)
       formdata.append('name', this.addForm.name)
       formdata.append('description', this.addForm.description)
-      if (this.addForm.type === '1') {
+      if (this.addForm.type === 1) {
         this.addForm.files.map((item, key, arr) => {
           formdata.append('file', item.originFileObj, item.originFileObj.name)
         })

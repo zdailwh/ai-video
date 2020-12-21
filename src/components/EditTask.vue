@@ -16,7 +16,7 @@
             </a-select-option>
           </a-select>
         </a-form-model-item>
-        <a-form-model-item label="上传视频" v-if="editForm.type === '1'">
+        <a-form-model-item label="上传视频" v-if="editForm.type === 1">
           <a-upload
             list-type="picture"
             :beforeUpload="beforeUpload"
@@ -26,7 +26,7 @@
           </a-upload>
         </a-form-model-item>
         <a-form-model-item label="任务地址">
-          <a-input v-model="editForm.url" :disabled="editForm.type === '1'" />
+          <a-input v-model="editForm.url" :disabled="editForm.type === 1" />
         </a-form-model-item>
         <a-form-model-item label="任务名称">
           <a-input v-model="editForm.name" />
@@ -140,11 +140,15 @@ export default {
       // editItem: {},
       // editKey: '',
       typeArr: [
-        { value: '0', text: '实时rtsp视频流' },
-        { value: '1', text: '用户上传视频文件' },
-        { value: '2', text: '用户平台录像文件' }
+        { value: 1, text: '用户上传视频文件' },
+        { value: 2, text: '实时rtsp视频流' }
       ],
       targetFaceIds: []
+    }
+  },
+  watch: {
+    editForm (newVal, oldVal) {
+      this.targetFaceIds = newVal.face_ids || []
     }
   },
   methods: {
@@ -153,7 +157,7 @@ export default {
         this.$message.error('请选择任务类型！')
         return
       }
-      if (this.editForm.type === '1') {
+      if (this.editForm.type === 1) {
         if (!this.editForm.files) {
           this.$message.error('请选择上传视频文件！')
           return
@@ -181,7 +185,7 @@ export default {
       formdata.append('type', this.editForm.type)
       formdata.append('name', this.editForm.name)
       formdata.append('description', this.editForm.description)
-      if (this.editForm.type === '1') {
+      if (this.editForm.type === 1) {
         this.editForm.files.map((item, key, arr) => {
           formdata.append('file', item.originFileObj, item.originFileObj.name)
         })
