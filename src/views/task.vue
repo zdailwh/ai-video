@@ -272,8 +272,9 @@ export default {
     delTask (record, idx) {
       api.delTask({id: record.ID}).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.datalist.splice(idx, 1)
+          // this.datalist.splice(idx, 1)
           this.$message.success('任务删除成功')
+          this.getTasks()
         }
       }).catch(error => {
         console.log(error.response)
@@ -290,14 +291,14 @@ export default {
       this.targetKeys = this.editForm.face_ids
     },
     start (item, key) {
-      // this.datalist[key].status = 1
       var params = {
         id: item.ID
       }
       api.taskRestart(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.datalist[key].status = 1
+          // this.datalist[key].status = 1
           this.$message.success('任务已重启')
+          this.getTasks()
         }
       }).catch(error => {
         console.log(error.response)
@@ -305,14 +306,14 @@ export default {
       })
     },
     stop (item, key) {
-      // this.datalist[key].status = 2
       var params = {
         id: item.ID
       }
       api.taskStop(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.datalist[key].status = 2
+          // this.datalist[key].status = 2
           this.$message.success('任务已停止')
+          this.getTasks()
         }
       }).catch(error => {
         console.log(error.response)
