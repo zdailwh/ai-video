@@ -1,7 +1,7 @@
 <template>
   <div class="faceWrap" :style="smalllayout? 'height: auto;': ''">
-    <ul class="listWrap">
-      <li class="list-item" v-for="(fItem,k) in taskresult" v-bind:key="k" @click="$emit('videofixed', { currentTime: fItem.time, item: fItem })">
+    <ul class="listWrap" v-if="taskresult.length">
+      <li class="list-item" :class="{ currBox: currBoxKey === k }" v-for="(fItem,k) in taskresult" v-bind:key="k" @click="changeBox(fItem, k)">
         <div class="img-box">
           <img v-if="fItem.faceImageUri" :src="fItem.faceImageUri" alt="人脸图">
           <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
@@ -17,6 +17,7 @@
         </div>
       </li>
     </ul>
+    <div v-else><p>还没有识别结果！</p></div>
   </div>
 </template>
 <script>
@@ -24,11 +25,22 @@ export default {
   props: [ 'taskresult', 'smalllayout' ],
   data () {
     return {
-      hideKey: [ 'faceId' ]
+      currBoxKey: 0
     }
   },
   watch: {
     taskresult (val, oldVal) {
+      if (val.length) {
+        this.currBoxKey = 0
+        var fItem = val[0]
+        this.$emit('videofixed', { currentTime: fItem.time, item: fItem })
+      }
+    }
+  },
+  methods: {
+    changeBox (fItem, k) {
+      this.$emit('videofixed', { currentTime: fItem.time, item: fItem })
+      this.currBoxKey = k
     }
   }
 }
@@ -52,6 +64,9 @@ export default {
   display: flex;
   align-items: center;
   cursor: pointer;
+}
+.list-item.currBox {
+  box-shadow: 0 0 10px 0 rgba(255,255,255,.7);
 }
 .list-item .img-box {
   width: 100px;

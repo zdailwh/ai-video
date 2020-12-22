@@ -237,7 +237,6 @@ export default {
       })
     },
     tabChange (key) {
-      console.log(key)
     },
     createPlayer () {
       var url = this.task.rtsp
