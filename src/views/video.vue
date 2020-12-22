@@ -428,8 +428,7 @@ input[type="text"], textarea {
   margin-right: 10px;
 }
 .resImgs img {
-  width: 100px;
-  height: 100px;
+  max-width: 100px;
   border: 1px solid #ccc;
 }
 </style>
