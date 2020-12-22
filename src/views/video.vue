@@ -36,14 +36,11 @@
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
       <a-tabs default-active-key="1" size="small" @change="tabChange">
         <a-tab-pane key="1" tab="任务结果">
-          <!-- <div class="searchWrap_video">
+          <div class="searchWrap_video">
             <a-form-model ref="searchForm" :model="searchForm" layout="inline">
-              <a-form-model-item label="人脸">
-                <a-select v-model="searchForm.type" mode="multiple" :dropdownMatchSelectWidth="false">
-                  <a-select-option value="">
-                    全部
-                  </a-select-option>
-                  <a-select-option :value="key" v-for="(val,key) in typeArr" v-bind:key="key">
+              <a-form-model-item label="表情">
+                <a-select v-model="searchForm.expression" :dropdownMatchSelectWidth="false" placeholder="表情筛选">
+                  <a-select-option :value="val" v-for="(val,key) in expressionArr" v-bind:key="key">
                     {{val}}
                   </a-select-option>
                 </a-select>
@@ -52,8 +49,8 @@
                 <a-button type="primary" @click="searchHandleOk">搜索</a-button>
               </a-form-model-item>
             </a-form-model>
-          </div> -->
-          <Face :taskresult="resDatalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
+          </div>
+          <Face :taskresult="filtedResDatalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="2" tab="任务基本信息">
           <Setting :taskinfo="task"/>
@@ -84,6 +81,7 @@ var resLabel = {
   'Gender': '性别',
   'Orientation': '人朝向',
   'WearHat': '戴帽子',
+  'HatColor': '帽子颜色',
   'beard': '胡子',
   'expression': '表情',
   'glasses': '眼镜',
@@ -177,13 +175,14 @@ export default {
     return {
       smallLayout: false,
       resDatalist: [],
+      filtedResDatalist: [],
       task: {},
       taskId: '',
       taskResItem: {},
       searchForm: {
-        type: ''
+        expression: '全部'
       },
-      typeArr: [ '张含韵', '张雨绮', '宁静', '伊能静' ],
+      expressionArr: [ '全部', '惊吓', '反感', '悲伤', '高兴', '中性' ], // 惊吓（surprise），反感（disgust），悲伤（sad），高兴（happy），中性（neutral）
       resLabel: resLabel
     }
   },
@@ -230,6 +229,7 @@ export default {
           //   value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
           // })
           this.resDatalist = res.data || []
+          this.filtedResDatalist = this.resDatalist
         }
       }).catch(error => {
         console.log(error.response)
@@ -265,16 +265,23 @@ export default {
       window.player = player
     },
     searchHandleOk () {
-      this.$refs.searchForm.validate(valid => {
-        if (valid) {
-          alert('submit!')
-        } else {
-          console.log('error submit!!')
-          return false
-        }
-      })
+      var filterExp = this.searchForm.expression
+      if (filterExp === '全部') {
+        this.filtedResDatalist = this.resDatalist
+      } else {
+        var arr = this.resDatalist
+        arr = arr.filter((item, val, array) => {
+          if (item.expression && item.expression.value && item.expression.value === filterExp) {
+            return true
+          } else {
+            return false
+          }
+        })
+        this.filtedResDatalist = arr
+      }
     },
     videoFixed (params) {
+      this.taskResItem = params.item
       // var timeStr = params.currentTime
       // var h = 0
       // var m = 0
@@ -293,8 +300,6 @@ export default {
       // var time = parseInt(h * 3600) + parseInt(m * 60) + parseInt(s)
       // console.log(h + ':' + m + ':' + s + ':::' + time)
       // window.player.currentTime(time)
-
-      this.taskResItem = params.item
     }
   }
 }

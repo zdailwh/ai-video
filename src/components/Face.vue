@@ -11,7 +11,7 @@
             <p>{{fItem.name}}</p>
             <p v-if="fItem['性别']">性别：{{fItem['性别'].indexOf(':') !== -1 ? fItem['性别'].substring(0, fItem['性别'].indexOf(':')): fItem['性别']}}</p>
             <p>性别：{{fItem.Gender.value}}</p>
-            <p>头发：{{fItem.hair.value}}</p>
+            <p>表情：{{fItem.expression.value}}</p>
             <p>时间：{{fItem.time}}</p>
           </div>
         </div>
@@ -47,7 +47,7 @@ export default {
 </script>
 <style scoped>
 .faceWrap {
-  height: calc(100vh - 112px);
+  height: calc(100vh - 180px);
   overflow-y: scroll;
   padding: 0 10px;
 }
