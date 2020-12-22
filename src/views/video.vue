@@ -184,9 +184,6 @@ export default {
         type: ''
       },
       typeArr: [ '张含韵', '张雨绮', '宁静', '伊能静' ],
-      datavideo: {
-        play_url: 'https://1256993030.vod2.myqcloud.com/d520582dvodtransgzp1256993030/7732bd367447398157015849771/v.f40.mp4'
-      },
       resLabel: resLabel
     }
   },
@@ -202,7 +199,7 @@ export default {
 
     this.taskId = this.$route.params.taskId
     if (this.taskId) {
-      // this.getPlayurl(this.taskId)
+      this.getPlayurl(this.taskId)
       this.getTaskResults(this.taskId)
     }
   },
@@ -213,8 +210,8 @@ export default {
       }
       api.getTasksById(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.datavideo = res.data.data || {}
-          if (this.datavideo) {
+          this.task = res.data
+          if (this.task && this.task.rtsp && this.task.rtsp !== 'undefined') {
             this.createPlayer()
           }
         }
@@ -243,8 +240,7 @@ export default {
       console.log(key)
     },
     createPlayer () {
-      var url = this.datavideo.play_url || 'https://1256993030.vod2.myqcloud.com/d520582dvodtransgzp1256993030/7732bd367447398157015849771/v.f40.mp4'
-      // var url = this.task.url
+      var url = this.task.rtsp
       document.querySelector('#tcplayer').innerHTML = ''
       var player = new TcPlayer('tcplayer', {
         mp4: url,
