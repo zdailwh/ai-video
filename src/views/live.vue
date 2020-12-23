@@ -87,6 +87,9 @@
             <!--结果筛选-->
             <div class="searchWrap_video">
               <a-form-model ref="searchForm" :model="searchForm" layout="inline">
+                <a-form-model-item label="明星">
+                  <a-input v-model="searchForm.name" placeholder="姓名" allow-clear style="width: 110px;" />
+                </a-form-model-item>
                 <a-form-model-item label="表情">
                   <a-select v-model="searchForm.expression" :dropdownMatchSelectWidth="false" placeholder="表情筛选">
                     <a-select-option :value="val" v-for="(val,key) in expressionArr" v-bind:key="key">
@@ -282,6 +285,7 @@ export default {
       filtedResDatalist: [],
       taskResItem: {},
       searchForm: {
+        name: '',
         expression: '全部'
       },
       expressionArr: [ '全部', '惊吓', '反感', '悲伤', '高兴', '中性' ],
@@ -528,16 +532,31 @@ export default {
       })
     },
     searchHandleOk () {
+      var filterName = this.searchForm.name
       var filterExp = this.searchForm.expression
-      if (filterExp === '全部') {
+      if (filterName === '' && filterExp === '全部') {
         this.filtedResDatalist = this.resDatalist
       } else {
         var arr = this.resDatalist
         arr = arr.filter((item, val, array) => {
-          if (item.expression && item.expression.value && item.expression.value === filterExp) {
-            return true
+          if (filterName === '') {
+            if (item.expression && item.expression.value && item.expression.value === filterExp) {
+              return true
+            } else {
+              return false
+            }
+          } else if (filterExp === '全部') {
+            if (item.name && item.name === filterName) {
+              return true
+            } else {
+              return false
+            }
           } else {
-            return false
+            if (item.name && item.name === filterName && item.expression && item.expression.value && item.expression.value === filterExp) {
+              return true
+            } else {
+              return false
+            }
           }
         })
         this.filtedResDatalist = arr

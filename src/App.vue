@@ -293,6 +293,16 @@ export default {
 .searchWrap_video .ant-select-selection--multiple .ant-select-selection__choice__remove {
   color: #989898;
 }
+.searchWrap_video .ant-input {
+  background-color: #161616;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #fff;
+}
+.searchWrap_video .ant-input-clear-icon,.searchWrap_video .ant-select-arrow {
+  color: rgba(255,255,255,.5);
+}
 
 .ant-card-cover {
   position: relative;
