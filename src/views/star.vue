@@ -350,8 +350,11 @@ export default {
         }
       }).catch(error => {
         this.spinning = false
-        console.log('error:')
-        console.log(error)
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取明星库出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     beforeUpload_add (file, fileList) {
@@ -431,8 +434,11 @@ export default {
         }
       }).catch(error => {
         this.addLoading = false
-        console.log(error.response)
-        this.$message.error(error.response.data.message || '创建出错！')
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '创建出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     toEdit (item, key) {
@@ -521,13 +527,19 @@ export default {
             }
           }).catch(error => {
             this.editLoading = false
-            console.log(error.response)
-            this.$message.error(error.response.data.message || '编辑出错！')
+            if (error.response && error.response.data) {
+              this.$message.error(error.response.data.message || '创建出错！')
+            } else {
+              this.$message.error('接口调用失败！')
+            }
           })
         }
       }).catch(error => {
-        console.log(error.response)
-        this.$message.error(error.response.data.message || '删除出错！')
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '删除出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     beforeImport (file, fileList) {
@@ -555,8 +567,11 @@ export default {
           this.$message.success('明星删除成功')
         }
       }).catch(error => {
-        console.log(error.response)
-        this.$message.error(error.response.data.message || '删除出错！')
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '删除出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     getFacesByName () {
@@ -578,8 +593,11 @@ export default {
         }
       }).catch(error => {
         this.spinning = false
-        console.log('error:')
-        console.log(error)
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取明星出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     }
   }

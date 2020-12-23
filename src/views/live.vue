@@ -335,8 +335,11 @@ export default {
         }
       }).catch(error => {
         this.spinning = false
-        console.log('error:')
-        console.log(error)
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取任务列表出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     tabChange (tab) {
@@ -364,8 +367,11 @@ export default {
           }
         }
       }).catch(error => {
-        console.log(error.response)
-        this.$message.error(error.response.data.message || '获取任务详情出错！')
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取任务详情出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     getTaskResults (tid) {
@@ -381,8 +387,11 @@ export default {
           this.filtedResDatalist = this.resDatalist
         }
       }).catch(error => {
-        console.log(error.response)
-        this.$message.error(error.response.data.message || '任务结果获取出错！')
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取任务结果出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     createPlayer () {
@@ -440,8 +449,11 @@ export default {
           this.getTasks()
         }
       }).catch(error => {
-        console.log(error.response)
-        this.$message.error(error.response.data.message || '删除出错！')
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '删除出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     toEdit (item, key, tag) {
@@ -464,8 +476,11 @@ export default {
           this.getTasks()
         }
       }).catch(error => {
-        console.log(error.response)
-        this.$message.error(error.response.data.message || '任务重启出错！')
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '任务重启出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     stop (item, key) {
@@ -479,8 +494,11 @@ export default {
           this.getTasks()
         }
       }).catch(error => {
-        console.log(error.response)
-        this.$message.error(error.response.data.message || '任务停止出错！')
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '任务停止出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     updateData (params) {
@@ -501,8 +519,12 @@ export default {
           this.facesDatalist = faceArr
         }
       }).catch(error => {
-        console.log('error:')
         console.log(error)
+        // if (error.response && error.response.data) {
+        //   this.$message.error(error.response.data.message || '获取明星列表出错！')
+        // } else {
+        //   this.$message.error('接口调用失败！')
+        // }
       })
     },
     searchHandleOk () {

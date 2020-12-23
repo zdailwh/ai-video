@@ -215,8 +215,11 @@ export default {
           }
         }
       }).catch(error => {
-        console.log(error.response)
-        this.$message.error(error.response.data.message || '获取任务详情出错！')
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取任务详情出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     getTaskResults (tid) {
@@ -232,8 +235,11 @@ export default {
           this.filtedResDatalist = this.resDatalist
         }
       }).catch(error => {
-        console.log(error.response)
-        this.$message.error(error.response.data.message || '任务结果获取出错！')
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取任务结果出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
       })
     },
     tabChange (key) {
