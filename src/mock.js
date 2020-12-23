@@ -46,8 +46,88 @@ let templateVideo = {
 }
 
 let templateVideos = {
+  'count': 54,
   'data|1-10': [templateVideo]
 }
+
+let templateFeature = {
+  'CreatedAt': '2020-10-15T18:43:24.842+08:00',
+  'UpdatedAt': '2020-10-15T18:43:24.842+08:00',
+  'GroupID': 'default_base_group',
+  'FaceID': 'fa4e41ac-ac78-4a94-b9bc-49ffadbf2400',
+  'FullURI': 'http://10.122.94.101:8080/v5/resources/data?uri=weed%3A%2F%2F2%2C0135388d4b60&contentType=image/jpeg'
+}
+
+let templateFeatures = [templateFeature]
+
+let templateResultItem = {
+  'AgeNum': {
+    'confidence': '0.5508909453637898',
+    'value': '⻘年'
+  },
+  'DressLowerColor': {
+    'confidence': '0.6308667659759521',
+    'value': '⿊'
+  },
+  'DressLowerStyle': {
+    'confidence': '0.9552142918109894',
+    'value': '⻓裤'
+  },
+  'DressUpperCoat': {
+    'confidence': '0.975117564201355',
+    'value': '⽆'
+  },
+  'DressUpperColor': {
+    'confidence': '0.6354866623878479',
+    'value': '⿊'
+  },
+  'DressUpperSize': {
+    'confidence': '0.9683660864830017',
+    'value': '⻓'
+  },
+  'Gender': {
+    'confidence': '0.8621735572814941',
+    'value': '⼥性'
+  },
+  'Orientation': {
+    'confidence': '0.9972658157348633',
+    'value': '前'
+  },
+  'WearHat': {
+    'confidence': '0.9996252059936523',
+    'value': '⽆'
+  },
+  'HatColor': {
+    'confidence': '0.9996252059936523',
+    'value': '⿊'
+  },
+  'attributes': [],
+  'beard': {
+    'confidence': '0.9999998807907104',
+    'value': 'bread_no_beard'
+  },
+  'expression': {
+    'confidence': '0.54018754',
+    'value': '中性'
+  },
+  'faceImageUri': 'http://10.122.94.101:8001/v5/resources/data?uri=weed%3A%2F%2F16%2C0bbfbb6616a9e2&contentType=image/jpeg',
+  'faceRect': '[472.4103698730469,218.06553649902344,720.6224365234375,456.7046813964844]',
+  'face_id': '5fc3ef8c-05fd-4ee5-b5fd-99c08cc8347f',
+  'glasses': {
+    'confidence': '0.9962349534034729',
+    'value': '没有'
+  },
+  'hair': {
+    'confidence': '0.999660849571228',
+    'value': '⻓发'
+  },
+  'humanImageUri': 'http://10.122.94.101:8001/v5/resources/data?uri=weed%3A%2F%2F16%2C0bbfb8eacbe33c&contentType=image/jpeg',
+  'humanRect': '',
+  'name': '张⾬绮',
+  'time': '12秒'
+}
+
+let templateResult = [templateResultItem]
 
 let user = {
   'id': '@id',
@@ -84,11 +164,17 @@ let face = Mock.mock(templateFace)
 let faces = Mock.mock(templateFaces)
 let video = Mock.mock(templateVideo)
 let videos = Mock.mock(templateVideos)
+let feature = Mock.mock(templateFeature)
+let features = Mock.mock(templateFeatures)
+let result = Mock.mock(templateResult)
 
 module.exports = {
   face,
   faces,
   video,
   videos,
+  feature,
+  features,
+  result,
   authentication
 }
