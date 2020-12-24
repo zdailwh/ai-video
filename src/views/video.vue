@@ -74,8 +74,13 @@ import Setting from '../components/Setting'
 import Face from '../components/Face'
 import { resLabel } from '../common.js'
 
+var timer = null
 export default {
   beforeRouteEnter (to, from, next) {
+    next()
+  },
+  beforeRouteLeave (to, from, next) {
+    window.clearTimeout(timer)
     next()
   },
   components: { Setting, Face },
@@ -138,6 +143,7 @@ export default {
       })
     },
     getTaskResults (tid) {
+      var that = this
       var params = {
         taskId: tid
       }
@@ -148,6 +154,10 @@ export default {
           // })
           this.resDatalist = res.data || []
           this.filtedResDatalist = this.resDatalist
+          window.clearTimeout(timer)
+          timer = window.setTimeout(function () {
+            that.getTaskResults(tid)
+          }, 5000)
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -189,8 +199,10 @@ export default {
       var filterName = this.searchForm.name
       var filterExp = this.searchForm.expression
       if (filterName === '' && filterExp === '全部') {
-        this.filtedResDatalist = this.resDatalist
+        // this.filtedResDatalist = this.resDatalist
+        this.getTaskResults(this.taskId)
       } else {
+        window.clearTimeout(timer)
         var arr = this.resDatalist
         arr = arr.filter((item, val, array) => {
           if (filterName === '') {

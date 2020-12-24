@@ -54,7 +54,7 @@
                       cancel-text="取消"
                       @confirm="start"
                     >
-                    <a-button type="primary">启动任务</a-button>
+                    <a-button type="primary" :disabled="demoForm.rtsp === ''">启动任务</a-button>
                   </a-popconfirm>
                   <a-popconfirm
                       title="确定要暂停该任务吗?"
@@ -62,7 +62,7 @@
                       cancel-text="取消"
                       @confirm="pause"
                     >
-                    <a-button type="danger" style="margin-left: 10px;">暂停任务</a-button>
+                    <a-button type="danger" :disabled="task === {} || task.url === '' || task.status === 'VIDEO_PAUSED'" style="margin-left: 10px;">暂停任务</a-button>
                   </a-popconfirm>
                 </a-form-model-item>
               </a-form-model>
@@ -102,8 +102,13 @@ import Setting from '../components/Setting'
 import Face from '../components/Face'
 import { resLabel } from '../common.js'
 
+var timer = null
 export default {
   beforeRouteEnter (to, from, next) {
+    next()
+  },
+  beforeRouteLeave (to, from, next) {
+    window.clearTimeout(timer)
     next()
   },
   components: { Setting, Face },
@@ -134,7 +139,8 @@ export default {
       resLabel: resLabel,
       demoForm: {
         rtsp: ''
-      }
+      },
+      continueCircle: true // 是否继续轮循
     }
   },
   mounted () {
@@ -177,6 +183,7 @@ export default {
       })
     },
     getTaskResults () {
+      var that = this
       var params = {
         pageSize: this.pageSize
       }
@@ -184,6 +191,12 @@ export default {
         if (res.status >= 200 && res.status < 300) {
           this.resDatalist = res.data.data || []
           this.filtedResDatalist = this.resDatalist
+          window.clearTimeout(timer)
+          if (this.continueCircle) {
+            timer = window.setTimeout(function () {
+              that.getTaskResults()
+            }, 5000)
+          }
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -194,10 +207,9 @@ export default {
       })
     },
     start () {
-      var params = {
-        rtsp: this.demoForm.rtsp
-      }
-      api.demoStart(params).then(res => {
+      var formdata = new FormData()
+      formdata.append('rtsp', this.demoForm.rtsp)
+      api.demoStart(formdata).then(res => {
         if (res.status >= 200 && res.status < 300) {
           this.$message.success('任务已启动')
           this.getPlayurl()
@@ -275,8 +287,12 @@ export default {
       var filterName = this.searchForm.name
       var filterExp = this.searchForm.expression
       if (filterName === '' && filterExp === '全部') {
-        this.filtedResDatalist = this.resDatalist
+        // this.filtedResDatalist = this.resDatalist
+        this.continueCircle = true
+        this.getTaskResults()
       } else {
+        this.continueCircle = false
+        window.clearTimeout(timer)
         var arr = this.resDatalist
         arr = arr.filter((item, val, array) => {
           if (filterName === '') {

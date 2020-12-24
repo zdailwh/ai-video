@@ -127,8 +127,13 @@ import AddTask from '../components/AddTask.vue'
 import EditTask from '../components/EditTask.vue'
 import { resLabel } from '../common.js'
 
+var timer = null
 export default {
   beforeRouteEnter (to, from, next) {
+    next()
+  },
+  beforeRouteLeave (to, from, next) {
+    window.clearTimeout(timer)
     next()
   },
   components: { Setting, Face, AddTask, EditTask },
@@ -221,6 +226,7 @@ export default {
         this.targetKeys = []
         this.activeTab = this.prevTab
       } else {
+        this.activeTab = tab
         this.getPlayurl(tab)
         this.getTaskResults(tab)
       }
@@ -248,6 +254,7 @@ export default {
       })
     },
     getTaskResults (tid) {
+      var that = this
       var params = {
         taskId: tid
       }
@@ -258,6 +265,10 @@ export default {
           // })
           this.resDatalist = res.data || []
           this.filtedResDatalist = this.resDatalist
+          window.clearTimeout(timer)
+          timer = window.setTimeout(function () {
+            that.getTaskResults(tid)
+          }, 5000)
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -404,8 +415,10 @@ export default {
       var filterName = this.searchForm.name
       var filterExp = this.searchForm.expression
       if (filterName === '' && filterExp === '全部') {
-        this.filtedResDatalist = this.resDatalist
+        // this.filtedResDatalist = this.resDatalist
+        this.getTaskResults(this.activeTab)
       } else {
+        window.clearTimeout(timer)
         var arr = this.resDatalist
         arr = arr.filter((item, val, array) => {
           if (filterName === '') {
