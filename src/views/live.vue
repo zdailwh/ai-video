@@ -24,11 +24,16 @@
             <template v-for="(detail, k) in taskResItem">
               <p v-if="resLabel[k]" v-bind:key="k">
                 <label>{{resLabel[k]}}：</label>
-                <template v-if="typeof(detail) === 'object'">
-                  {{detail['value']}}（{{detail.confidence | myToFixed}}）
+                <template v-if="k === 'expression_three'">
+                  {{detail['value']}}（{{detail.confidence}}）
                 </template>
                 <template v-else>
-                  {{detail}}
+                  <template v-if="typeof(detail) === 'object'">
+                    {{detail['value']}}（{{detail.confidence | myToFixed}}）
+                  </template>
+                  <template v-else>
+                    {{detail}}
+                  </template>
                 </template>
               </p>
             </template>
@@ -98,7 +103,7 @@
                   </a-select>
                 </a-form-model-item>
                 <a-form-model-item>
-                  <a-button type="primary" @click="searchHandleOk">搜索</a-button>
+                  <a-button type="primary" ghost @click="searchHandleOk">搜索</a-button>
                 </a-form-model-item>
               </a-form-model>
             </div>
@@ -120,142 +125,7 @@ import Setting from '../components/Setting'
 import Face from '../components/Face'
 import AddTask from '../components/AddTask.vue'
 import EditTask from '../components/EditTask.vue'
-
-import nj from '../assets/u3.jpg'
-import zyq from '../assets/u1.png'
-import wlk from '../assets/u5.jpg'
-import wq from '../assets/u4.jpg'
-
-var stars = [
-  {
-    create_time: '2020-08-24T07:04:42.427Z',
-    description: '',
-    fullUri: zyq,
-    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
-    key: '90-AAABdB9IjLv0dekZAAAAAQ==',
-    id: '90-AAABdB9IjLv0dekZAAAAAQ==',
-    Name: '张雨绮',
-    title: '张雨绮'
-  },
-  {
-    create_time: '2020-08-11T05:02:14.281Z',
-    description: '宁静',
-    fullUri: nj,
-    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
-    key: '90-AAABc9vlwQmo265QAAAAAg==',
-    id: '90-AAABc9vlwQmo265QAAAAAg==',
-    Name: '宁静',
-    title: '宁静'
-  },
-  {
-    create_time: '2020-08-11T05:01:52.489Z',
-    description: '王丽坤',
-    fullUri: wlk,
-    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
-    key: '90-AAABc9vla-mo265PAAAAAQ==',
-    id: '90-AAABc9vla-mo265PAAAAAQ==',
-    Name: '王丽坤',
-    title: '王丽坤'
-  },
-  {
-    create_time: '2020-08-11T03:24:19.131Z',
-    description: '万茜',
-    fullUri: wq,
-    group_id: '163a28d9-bc6c-44a3-832f-9f07939d2265',
-    key: '90-AAABc9uMGzuo265MAAAAAg==',
-    id: '90-AAABc9uMGzuo265MAAAAAg==',
-    Name: '万茜',
-    title: '万茜'
-  }
-]
-var resLabel = {
-  'AgeNum': '年龄',
-  'DressLowerColor': '下身颜色',
-  'DressLowerStyle': '下身类型',
-  'DressUpperCoat': '上身外套',
-  'DressUpperColor': '上身颜色',
-  'DressUpperSize': '上身尺寸',
-  'Gender': '性别',
-  'Orientation': '人朝向',
-  'WearHat': '戴帽子',
-  'HatColor': '帽子颜色',
-  'beard': '胡子',
-  'expression': '表情',
-  'glasses': '眼镜',
-  'hair': '头发',
-  // 'attributes': '',
-  // 'faceImageUri': '明星人脸',
-  // 'faceRect': '',
-  'face_id': '明星ID',
-  // 'humanImageUri': '人脸图',
-  // 'humanRect': '',
-  'name': '姓名',
-  'time': '时间'
-}
-// var resDemo = [
-//   {
-//     'AgeNum': {
-//       'confidence': '0.5508909453637898',
-//       'value': '⻘年'
-//     },
-//     'DressLowerColor': {
-//       'confidence': '0.6308667659759521',
-//       'value': '⿊'
-//     },
-//     'DressLowerStyle': {
-//       'confidence': '0.9552142918109894',
-//       'value': '⻓裤'
-//     },
-//     'DressUpperCoat': {
-//       'confidence': '0.975117564201355',
-//       'value': '⽆'
-//     },
-//     'DressUpperColor': {
-//       'confidence': '0.6354866623878479',
-//       'value': '⿊'
-//     },
-//     'DressUpperSize': {
-//       'confidence': '0.9683660864830017',
-//       'value': '⻓'
-//     },
-//     'Gender': {
-//       'confidence': '0.8621735572814941',
-//       'value': '⼥性'
-//     },
-//     'Orientation': {
-//       'confidence': '0.9972658157348633',
-//       'value': '前'
-//     },
-//     'WearHat': {
-//       'confidence': '0.9996252059936523',
-//       'value': '⽆'
-//     },
-//     'attributes': [],
-//     'beard': {
-//       'confidence': '0.9999998807907104',
-//       'value': 'bread_no_beard'
-//     },
-//     'expression': {
-//       'confidence': '0.54018754',
-//       'value': '中性'
-//     },
-//     'faceImageUri': 'http://10.122.94.101:8001/v5/resources/data?uri=weed%3A%2F%2F16%2C0bbfbb6616a9e2&contentType=image/jpeg',
-//     'faceRect': '[472.4103698730469,218.06553649902344,720.6224365234375,456.7046813964844]',
-//     'face_id': '5fc3ef8c-05fd-4ee5-b5fd-99c08cc8347f',
-//     'glasses': {
-//       'confidence': '0.9962349534034729',
-//       'value': '没有'
-//     },
-//     'hair': {
-//       'confidence': '0.999660849571228',
-//       'value': '⻓发'
-//     },
-//     'humanImageUri': 'http://10.122.94.101:8001/v5/resources/data?uri=weed%3A%2F%2F16%2C0bbfb8eacbe33c&contentType=image/jpeg',
-//     'humanRect': '',
-//     'name': '张⾬绮',
-//     'time': '12秒'
-//   }
-// ]
+import { resLabel } from '../common.js'
 
 export default {
   beforeRouteEnter (to, from, next) {
@@ -291,7 +161,6 @@ export default {
       expressionArr: [ '全部', '惊吓', '反感', '悲伤', '高兴', '中性' ],
       addVisible: false,
       editVisible: false,
-      mockData: stars,
       targetKeys: [],
       selectedKeys: [],
       editForm: {},
@@ -689,7 +558,7 @@ input[type="text"], textarea {
 .locationDetailWrap .locDetail p label {
   display: inline-block;
   text-align: right;
-  width: 80px;
+  width: 100px;
   color: #cecece;
   margin-right: 10px;
 }
