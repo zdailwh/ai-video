@@ -7,16 +7,16 @@
         </div>
         <div class="opt mymenu" style="justify-content: center;">
           <a-menu theme="dark" v-model="current" mode="horizontal">
-            <!-- <a-menu-item key="/facegroup"><router-link to="/facegroup">人脸库</router-link></a-menu-item> -->
+            <a-menu-item key="/demo"><router-link to="/demo">Demo</router-link></a-menu-item>
             <a-menu-item key="/live"><router-link to="/live">直播流</router-link></a-menu-item>
             <a-menu-item key="/task"><router-link to="/task">离线任务</router-link></a-menu-item>
             <a-menu-item key="/star"><router-link to="/star">明星库</router-link></a-menu-item>
             <a-menu-item key="/setting"><router-link to="/setting">设置</router-link></a-menu-item>
           </a-menu>
         </div>
-        <div class="opt" style="justify-content: flex-end;flex:1;">
+        <div v-show="smallLayout === false" class="opt" style="justify-content: flex-end;flex:1;">
           <div class="person-info">
-            <div class="avatar" v-show="smallLayout === false"><img src="./assets/user.png" alt=""></div>
+            <div class="avatar"><img src="./assets/user.png" alt=""></div>
             <div class="my-name" v-show="current.indexOf('/login') === -1">
               <span class="userName_title" title="" v-on:mouseover="showMenus=true">admin</span>
               <ul class="my-opt" v-show="showMenus">

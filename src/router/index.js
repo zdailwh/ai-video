@@ -9,6 +9,7 @@ import Task from '@/views/task'
 import Star from '@/views/star'
 import Live from '@/views/live'
 import Setting from '@/views/setting'
+import Demo from '@/views/demo'
 
 Vue.use(Router)
 
@@ -79,6 +80,14 @@ export default new Router({
       component: Setting,
       meta: {
         title: '设置'
+      }
+    },
+    {
+      path: '/demo',
+      name: 'Demo',
+      component: Demo,
+      meta: {
+        title: '陌生人Demo'
       }
     }
   ]

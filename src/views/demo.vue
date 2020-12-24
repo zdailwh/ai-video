@@ -1,0 +1,451 @@
+<template>
+  <div class="liveWrap">
+    <div class="videoWrap" :style="smallLayout? 'display: block;': ''">
+      <div class="d-left" :style="smallLayout? 'width: 100%;height: auto;': ''">
+        <div class="media-wrapper">
+          <div class="media-player">
+            <div class="playwrap">
+              <div id="tcplayer"></div>
+            </div>
+          </div>
+        </div>
+        <div v-if="taskResItem.name" class="locationDetailWrap">
+          <h4>人脸详情</h4>
+          <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
+            <template v-for="(detail, k) in taskResItem">
+              <p v-if="resLabel[k]" v-bind:key="k">
+                <label>{{resLabel[k]}}：</label>
+                <template v-if="k === 'expression_three'">
+                  {{detail['value']}}（{{detail.confidence}}）
+                </template>
+                <template v-else>
+                  <template v-if="typeof(detail) === 'object'">
+                    {{detail['value']}}（{{detail.confidence | myToFixed}}）
+                  </template>
+                  <template v-else>
+                    {{detail}}
+                  </template>
+                </template>
+              </p>
+            </template>
+            <p class="resImgs">
+              人脸图：
+              <img :src="taskResItem.faceImageUri">
+            </p>
+            <p class="resImgs">
+              人体图：
+              <img :src="taskResItem.humanImageUri">
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
+        <a-tabs v-model="activeTab" size="small" @change="tabChange" @tabClick="tabClick">
+          <a-tab-pane key="1" tab="任务结果">
+            <div class="searchWrap_video">
+              <a-form-model ref="demoForm" :model="demoForm" layout="inline">
+                <a-form-model-item label="rtsp">
+                  <a-input v-model="demoForm.rtsp" placeholder="rtsp视频流地址" allow-clear style="width: 245px;" />
+                </a-form-model-item>
+                <a-form-model-item>
+                  <a-popconfirm
+                      title="确定要启动该任务吗?"
+                      ok-text="启动"
+                      cancel-text="取消"
+                      @confirm="start"
+                    >
+                    <a-button type="primary">启动任务</a-button>
+                  </a-popconfirm>
+                  <a-popconfirm
+                      title="确定要暂停该任务吗?"
+                      ok-text="暂停"
+                      cancel-text="取消"
+                      @confirm="pause"
+                    >
+                    <a-button type="danger" style="margin-left: 10px;">暂停任务</a-button>
+                  </a-popconfirm>
+                </a-form-model-item>
+              </a-form-model>
+            </div>
+            <div class="searchWrap_video">
+              <a-form-model ref="searchForm" :model="searchForm" layout="inline">
+                <a-form-model-item label="明星">
+                  <a-input v-model="searchForm.name" placeholder="姓名" allow-clear style="width: 110px;" />
+                </a-form-model-item>
+                <a-form-model-item label="表情">
+                  <a-select v-model="searchForm.expression" :dropdownMatchSelectWidth="false" placeholder="表情筛选">
+                    <a-select-option :value="val" v-for="(val,key) in expressionArr" v-bind:key="key">
+                      {{val}}
+                    </a-select-option>
+                  </a-select>
+                </a-form-model-item>
+                <a-form-model-item>
+                  <a-button type="primary" ghost @click="searchHandleOk">搜索</a-button>
+                </a-form-model-item>
+              </a-form-model>
+            </div>
+            <Face :taskresult="filtedResDatalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
+          </a-tab-pane>
+          <!-- <a-tab-pane key="2" tab="任务基本信息">
+            <Setting :taskinfo="task"/>
+          </a-tab-pane> -->
+        </a-tabs>
+      </div>
+    </div>
+
+  </div>
+</template>
+<script>
+import api from '../api'
+import { TcPlayer } from 'tcplayer'
+import Setting from '../components/Setting'
+import Face from '../components/Face'
+import { resLabel } from '../common.js'
+
+export default {
+  beforeRouteEnter (to, from, next) {
+    next()
+  },
+  components: { Setting, Face },
+  filters: {
+    myToFixed (val) {
+      if (!val) return ''
+      return parseFloat(val).toFixed(3)
+    }
+  },
+  data () {
+    return {
+      smallLayout: false,
+      spinning: false,
+      prevTab: '',
+      activeTab: '1',
+      pageNum: 1,
+      pageSize: 10,
+      task: {},
+      taskId: '',
+      resDatalist: [],
+      filtedResDatalist: [],
+      taskResItem: {},
+      searchForm: {
+        name: '',
+        expression: '全部'
+      },
+      expressionArr: [ '全部', '惊吓', '反感', '悲伤', '高兴', '中性' ],
+      resLabel: resLabel,
+      demoForm: {
+        rtsp: ''
+      }
+    }
+  },
+  mounted () {
+    var viewWidth = document.documentElement.clientWidth
+    if (viewWidth < 768) {
+      this.smallLayout = true
+    }
+
+    var ele = document.querySelectorAll('.file-main')
+    if (ele.length) {
+      ele[0].style.backgroundColor = '#171819'
+    }
+
+    this.getPlayurl()
+  },
+  methods: {
+    tabChange (tab) {
+    },
+    tabClick () {
+      this.prevTab = this.activeTab
+    },
+    getPlayurl () {
+      api.getDemo().then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.task = res.data
+          if (this.task && this.task.id) {
+            this.getTaskResults()
+          }
+          if (this.task && this.task.url) {
+            this.demoForm.rtsp = this.task.url
+            this.createPlayer()
+          }
+        }
+      }).catch(error => {
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取任务详情出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    getTaskResults () {
+      var params = {
+        pageSize: this.pageSize
+      }
+      api.getDemoMessages(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.resDatalist = res.data.data || []
+          this.filtedResDatalist = this.resDatalist
+        }
+      }).catch(error => {
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '获取任务结果出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    start () {
+      var params = {
+        rtsp: this.demoForm.rtsp
+      }
+      api.demoStart(params).then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.$message.success('任务已启动')
+          this.getPlayurl()
+        }
+      }).catch(error => {
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '任务启动出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    pause () {
+      api.demoPause().then(res => {
+        if (res.status >= 200 && res.status < 300) {
+          this.$message.success('任务已暂停')
+          this.getPlayurl()
+        }
+      }).catch(error => {
+        if (error.response && error.response.data) {
+          this.$message.error(error.response.data.message || '任务暂停出错！')
+        } else {
+          this.$message.error('接口调用失败！')
+        }
+      })
+    },
+    createPlayer () {
+      var url = this.task.rtsp
+      document.querySelector('#tcplayer').innerHTML = ''
+      var player = new TcPlayer('tcplayer', {
+        mp4: url,
+        autoplay: true,
+        width: '100%',
+        height: 'auto',
+        wording: {
+          1001: '网络错误，请检查网络配置或者播放链接是否正确',
+          1002: '获取视频失败，请检查播放链接是否有效',
+          2032: '获取视频失败，请检查播放链接是否有效',
+          2048: '无法加载视频文件，跨域访问被拒绝'
+        },
+        listener: function (msg) {
+          // console.log('listener:', msg)
+          // if (msg.type === 'play') {
+          //   self.videoPlay()
+          // }
+          // if (msg.type === 'loadeddata') {
+          //   player.play()
+          // }
+        }
+      })
+      window.player = player
+    },
+    videoFixed (params) {
+      this.taskResItem = params.item
+      var timeStr = params.currentTime
+      var h = 0
+      var m = 0
+      var s = 0
+      if (timeStr.indexOf('时') !== -1) {
+        h = timeStr.substring(0, timeStr.indexOf('时'))
+        timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('时') + 1), '')
+      }
+      if (timeStr.indexOf('分') !== -1) {
+        m = timeStr.substring(0, timeStr.indexOf('分'))
+        timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('分') + 1), '')
+      }
+      if (timeStr.indexOf('秒') !== -1) {
+        s = timeStr.substring(0, timeStr.indexOf('秒'))
+      }
+      var time = parseInt(h * 3600) + parseInt(m * 60) + parseInt(s)
+      // console.log(h + ':' + m + ':' + s + ':::' + time)
+      window.player.currentTime(time)
+    },
+    searchHandleOk () {
+      var filterName = this.searchForm.name
+      var filterExp = this.searchForm.expression
+      if (filterName === '' && filterExp === '全部') {
+        this.filtedResDatalist = this.resDatalist
+      } else {
+        var arr = this.resDatalist
+        arr = arr.filter((item, val, array) => {
+          if (filterName === '') {
+            if (item.expression && item.expression.value && item.expression.value === filterExp) {
+              return true
+            } else {
+              return false
+            }
+          } else if (filterExp === '全部') {
+            if (item.name && item.name === filterName) {
+              return true
+            } else {
+              return false
+            }
+          } else {
+            if (item.name && item.name === filterName && item.expression && item.expression.value && item.expression.value === filterExp) {
+              return true
+            } else {
+              return false
+            }
+          }
+        })
+        this.filtedResDatalist = arr
+      }
+    }
+  }
+}
+</script>
+<style scoped>
+.liveWrap {
+  display: flex;
+}
+.liveWrap .sliderWrap {
+  width: 91px;
+}
+.oprateWrap {
+  margin: 0 15px 15px;
+}
+.videoWrap {
+  flex: 1;
+  display: flex;
+  height: 100%;
+}
+.d-left {
+  width: 50%;
+  height: 100%;
+}
+.d-right {
+  width: 50%;
+  height: 100%;
+  overflow-y: hidden;
+}
+.media-wrapper {
+  width: 100%;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+.media-wrapper .media-player {
+  text-align: center;
+  width: 100%;
+  position: relative;
+}
+.playwrap {
+  padding: 0 5px;
+}
+
+.cut_catalog_dropdown {
+  position: absolute;
+  right: 5px;
+  bottom: -153px;
+  width: 210px;
+  height: 153px;
+  z-index: 1000;
+  border-radius: 4px;
+  background: #2d2f31;
+  box-shadow: 0 0 1px 0 rgba(10, 31, 68, 0.08), 0 8px 10px 0 rgba(10, 31, 68, 0.1);
+}
+.cut_catalog_dropdown .cut_catalog_list {
+  padding: 10px;
+}
+.cut_catalog_dropdown .cut_catalog_list li.cut_catalog_item:first-child {
+  margin-top: 0;
+}
+.cut_catalog_dropdown .cut_catalog_list li.cut_catalog_item {
+  height: 24px;
+  margin: 10px 0;
+}
+.cut_catalog_dropdown .cut_catalog_list li.cut_catalog_item span.title {
+  width: 78px;
+  font-size: 12px;
+  color: #acb0b7;
+  text-align: right;
+  padding-right: 10px;
+}
+.cut_catalog_dropdown .cut_catalog_list li.cut_catalog_item input {
+  width: 100px;
+  font-size: 12px;
+}
+input[type="text"], textarea {
+  -webkit-appearance: none;
+}
+.cut_catalog_dropdown .cut_catalog_list li.cut_catalog_item span.title, .cut_catalog_dropdown .cut_catalog_list li.cut_catalog_item input {
+  height: 24px;
+  line-height: 24px;
+  float: left;
+}
+.cut_catalog_dropdown .cut_catalog_list li.cut_catalog_item .anticon-close {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  color: #a5aab3;
+  cursor: pointer;
+  font-size: 13px;
+  background: #3c3c3c;
+  border-radius: 50%;
+}
+.cut_catalog_dropdown .cut_catalog_list li.cut_catalog_item .btn {
+  display: inline-block;
+  width: 78px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  background-color: #3c3c3c;
+  border-radius: 4px;
+  color: #fff;
+  margin: 0 5px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.cut_catalog_dropdown .cut_catalog_list li.cut_catalog_item .btn.btn_ok {
+  background-color: #2a92fe;
+}
+.searchWrap_video {
+  margin-bottom: 15px;
+}
+
+.locationDetailWrap {
+  margin: 0 20px 20px;
+}
+.locationDetailWrap h4 {
+  font-size: 16px;
+  color: #fff;
+  font-weight: bold;
+  margin: 10px 0;
+}
+.locationDetailWrap .locDetail p {
+  color: #989898;
+  font-size: 14px;
+}
+.locationDetailWrap .locDetail p label {
+  display: inline-block;
+  text-align: right;
+  width: 100px;
+  color: #cecece;
+  margin-right: 10px;
+}
+.locationDetailWrap .locDetail.inlineDetail {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.resImgs {
+  float: left;
+  color: #cecece !important;
+  width: 100px;
+  margin-right: 10px;
+}
+.resImgs img {
+  max-width: 100px;
+  border: 1px solid #ccc;
+}
+</style>

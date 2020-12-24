@@ -110,6 +110,10 @@ let templateResultItem = {
     'confidence': '0.54018754',
     'value': '中性'
   },
+  'expression_three': {
+    'confidence': '[1, 2]',
+    'value': 'unknown'
+  },
   'faceImageUri': 'http://10.122.94.101:8001/v5/resources/data?uri=weed%3A%2F%2F16%2C0bbfbb6616a9e2&contentType=image/jpeg',
   'faceRect': '[472.4103698730469,218.06553649902344,720.6224365234375,456.7046813964844]',
   'face_id': '5fc3ef8c-05fd-4ee5-b5fd-99c08cc8347f',
@@ -128,6 +132,17 @@ let templateResultItem = {
 }
 
 let templateResult = [templateResultItem]
+
+let templateDemo = {
+  'id': 'aa-bb-cc',
+  'name': 'demo',
+  'description': 'demo',
+  'url': 'rtsp://xxxx.xx.x.x/xx',
+  'status': 'VIDEO_PROCESSING'
+}
+let templateDemoMessages = {
+  'data|1-10': [templateResultItem]
+}
 
 let user = {
   'id': '@id',
@@ -167,6 +182,8 @@ let videos = Mock.mock(templateVideos)
 let feature = Mock.mock(templateFeature)
 let features = Mock.mock(templateFeatures)
 let result = Mock.mock(templateResult)
+let demo = Mock.mock(templateDemo)
+let demoMessages = Mock.mock(templateDemoMessages)
 
 module.exports = {
   face,
@@ -176,5 +193,7 @@ module.exports = {
   feature,
   features,
   result,
+  demo,
+  demoMessages,
   authentication
 }
