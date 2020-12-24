@@ -86,9 +86,9 @@
             </div>
             <Face :taskresult="filtedResDatalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
           </a-tab-pane>
-          <!-- <a-tab-pane key="2" tab="任务基本信息">
-            <Setting :taskinfo="task"/>
-          </a-tab-pane> -->
+          <a-tab-pane key="2" tab="任务基本信息">
+            <DemoSetting :taskinfo="task"/>
+          </a-tab-pane>
         </a-tabs>
       </div>
     </div>
@@ -98,7 +98,7 @@
 <script>
 import api from '../api'
 import { TcPlayer } from 'tcplayer'
-import Setting from '../components/Setting'
+import DemoSetting from '../components/DemoSetting'
 import Face from '../components/Face'
 import { resLabel } from '../common.js'
 
@@ -112,7 +112,7 @@ export default {
     window.clearTimeout(timer)
     next()
   },
-  components: { Setting, Face },
+  components: { DemoSetting, Face },
   filters: {
     myToFixed (val) {
       if (!val) return ''
