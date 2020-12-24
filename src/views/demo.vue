@@ -54,7 +54,7 @@
                       cancel-text="取消"
                       @confirm="start"
                     >
-                    <a-button type="primary" :disabled="demoForm.rtsp === ''">启动任务</a-button>
+                    <a-button type="primary" :disabled="demoForm.rtsp === '' || task.status === 'VIDEO_PROCESSING'">启动任务</a-button>
                   </a-popconfirm>
                   <a-popconfirm
                       title="确定要暂停该任务吗?"
@@ -108,6 +108,7 @@ export default {
     next()
   },
   beforeRouteLeave (to, from, next) {
+    this.continueCircle = false
     window.clearTimeout(timer)
     next()
   },
@@ -124,7 +125,6 @@ export default {
       spinning: false,
       prevTab: '',
       activeTab: '1',
-      pageNum: 1,
       pageSize: 10,
       task: {},
       taskId: '',
@@ -189,13 +189,13 @@ export default {
       }
       api.getDemoMessages(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          this.resDatalist = res.data.data || []
+          this.resDatalist = this.resDatalist.concat(res.data.data)
           this.filtedResDatalist = this.resDatalist
           window.clearTimeout(timer)
-          if (this.continueCircle) {
+          if (this.continueCircle && this.task.status === 'VIDEO_PROCESSING') {
             timer = window.setTimeout(function () {
               that.getTaskResults()
-            }, 5000)
+            }, 1000)
           }
         }
       }).catch(error => {

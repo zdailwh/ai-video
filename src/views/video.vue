@@ -143,7 +143,7 @@ export default {
       })
     },
     getTaskResults (tid) {
-      var that = this
+      // var that = this
       var params = {
         taskId: tid
       }
@@ -154,10 +154,10 @@ export default {
           // })
           this.resDatalist = res.data || []
           this.filtedResDatalist = this.resDatalist
-          window.clearTimeout(timer)
-          timer = window.setTimeout(function () {
-            that.getTaskResults(tid)
-          }, 5000)
+          // window.clearTimeout(timer)
+          // timer = window.setTimeout(function () {
+          //   that.getTaskResults(tid)
+          // }, 5000)
         }
       }).catch(error => {
         if (error.response && error.response.data) {

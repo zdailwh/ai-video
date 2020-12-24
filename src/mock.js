@@ -138,7 +138,7 @@ let templateDemo = {
   'name': 'demo',
   'description': 'demo',
   'url': 'rtsp://xxxx.xx.x.x/xx',
-  'status': 'VIDEO_PROCESSING'
+  'status': 'VIDEO_PROCESSING' // VIDEO_PREPARING，VIDEO_PROCESSING，VIDEO_PAUSED，VIDEO_ERROR
 }
 let templateDemoMessages = {
   'data|1-10': [templateResultItem]
