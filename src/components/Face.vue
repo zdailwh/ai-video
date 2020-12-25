@@ -3,15 +3,14 @@
     <ul class="listWrap" v-if="taskresult.length">
       <li class="list-item" :class="{ currBox: currBoxKey === k }" v-for="(fItem,k) in taskresult" v-bind:key="k" @click="changeBox(fItem, k)">
         <div class="img-box">
-          <img v-if="fItem.faceImageUri" :src="fItem.faceImageUri" alt="人脸图">
+          <img v-if="fItem.data.faceImageUri" :src="fItem.data.faceImageUri" alt="人脸图">
           <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
         </div>
         <div class="desc-box">
           <div class="timeWrap">
-            <p>{{fItem.name}}</p>
-            <p v-if="fItem['性别']">性别：{{fItem['性别'].indexOf(':') !== -1 ? fItem['性别'].substring(0, fItem['性别'].indexOf(':')): fItem['性别']}}</p>
-            <p>性别：{{fItem.Gender.value}}</p>
-            <p>表情：{{fItem.expression.value}}</p>
+            <p>{{fItem.face_name}}</p>
+            <p>性别：{{fItem.data.HumanAttributes.Gender.name | toDict('Gender')}}</p>
+            <p>表情：{{fItem.data.Expression.name | toDict('Expression')}}</p>
             <p>时间：{{fItem.time}}</p>
           </div>
         </div>
@@ -21,11 +20,23 @@
   </div>
 </template>
 <script>
+import dict from '../dict.json'
 export default {
   props: [ 'taskresult', 'smalllayout' ],
   data () {
     return {
       currBoxKey: 0
+    }
+  },
+  filters: {
+    toDict (val, label) {
+      if (!val) return ''
+      var k = `${label}_${val}`
+      if (dict[k]) {
+        return dict[k]
+      } else {
+        return val
+      }
     }
   },
   watch: {

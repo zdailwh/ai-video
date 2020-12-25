@@ -21,32 +21,7 @@
         <div v-if="taskResItem.name" class="locationDetailWrap">
           <h4>人脸详情</h4>
           <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
-            <template v-for="(label, k) in resLabel">
-              <p v-bind:key="k">
-                <label>{{label}}：</label>
-                <template v-if="taskResItem[k]">
-                  <template v-if="k === 'expressionThree'">
-                    {{ taskResItem[k].value }}（{{ taskResItem.expressionThree.confidence }}）
-                  </template>
-                  <template v-else>
-                    <template v-if="typeof(taskResItem[k]) === 'object'">
-                      {{ taskResItem[k].value }}（{{ taskResItem[k].confidence | myToFixed }}）
-                    </template>
-                    <template v-else>
-                      {{ taskResItem[k] | filterVal(k) }}
-                    </template>
-                  </template>
-                </template>
-              </p>
-            </template>
-            <p class="resImgs">
-              人脸图：
-              <img :src="taskResItem.faceImageUri">
-            </p>
-            <p class="resImgs">
-              人体图：
-              <img :src="taskResItem.humanImageUri">
-            </p>
+            <ResDetail :res-item="taskResItem" />
           </div>
         </div>
       </div>
@@ -99,8 +74,8 @@
                 </a-form-model-item>
                 <a-form-model-item label="表情">
                   <a-select v-model="searchForm.expression" :dropdownMatchSelectWidth="false" placeholder="表情筛选">
-                    <a-select-option :value="val" v-for="(val,key) in expressionArr" v-bind:key="key">
-                      {{val}}
+                    <a-select-option :value="item.value" v-for="(item,key) in expressionArr" v-bind:key="key">
+                      {{item.name}}
                     </a-select-option>
                   </a-select>
                 </a-form-model-item>
@@ -127,7 +102,7 @@ import Setting from '../components/Setting'
 import Face from '../components/Face'
 import AddTask from '../components/AddTask.vue'
 import EditTask from '../components/EditTask.vue'
-import { resLabel } from '../common.js'
+import ResDetail from '../components/ResDetail'
 
 var timer = null
 export default {
@@ -138,29 +113,7 @@ export default {
     window.clearTimeout(timer)
     next()
   },
-  components: { Setting, Face, AddTask, EditTask },
-  filters: {
-    myToFixed (val) {
-      if (!val) return ''
-      return parseFloat(val).toFixed(3)
-    },
-    filterVal (val, key) {
-      var floatArr = ['Blur', 'Yaw', 'Pitch', 'PfScore', 'Partial']
-      var listArr = ['HumanRect', 'HeadRect', 'FaceRect']
-      if (!val) return ''
-      if (floatArr.indexOf(key) !== -1) {
-        return parseFloat(val).toFixed(3)
-      } else if (listArr.indexOf(key) !== -1) {
-        var toArr = JSON.parse(val)
-        var fixedArr = toArr.map((item, idx, arr) => {
-          return parseFloat(item).toFixed(3)
-        })
-        return fixedArr.join(' , ')
-      } else {
-        return val
-      }
-    }
-  },
+  components: { Setting, Face, AddTask, EditTask, ResDetail },
   data () {
     return {
       stream_type: 'online',
@@ -181,7 +134,14 @@ export default {
         name: '',
         expression: '全部'
       },
-      expressionArr: [ '全部', '惊吓', '反感', '悲伤', '高兴', '中性' ],
+      expressionArr: [
+        { name: '全部', value: '全部' },
+        { name: '惊吓', value: 'surprise' },
+        { name: '反感', value: 'disgust' },
+        { name: '悲伤', value: 'sad' },
+        { name: '高兴', value: 'happy' },
+        { name: '中性', value: 'neutral' }
+      ],
       addVisible: false,
       editVisible: false,
       targetKeys: [],
@@ -190,7 +150,6 @@ export default {
       editItem: {},
       editKey: '',
       editTag: '', // 'edit' || 'copy'
-      resLabel: resLabel,
       facesDatalist: []
     }
   },
@@ -440,19 +399,19 @@ export default {
         var arr = this.resDatalist
         arr = arr.filter((item, val, array) => {
           if (filterName === '') {
-            if (item.expression && item.expression.value && item.expression.value === filterExp) {
+            if (item.data.Expression && item.data.Expression.name && item.data.Expression.name === filterExp) {
               return true
             } else {
               return false
             }
           } else if (filterExp === '全部') {
-            if (item.name && item.name === filterName) {
+            if (item.face_name && item.face_name === filterName) {
               return true
             } else {
               return false
             }
           } else {
-            if (item.name && item.name === filterName && item.expression && item.expression.value && item.expression.value === filterExp) {
+            if (item.face_name && item.face_name === filterName && item.data.Expression && item.data.Expression.name && item.data.Expression.name === filterExp) {
               return true
             } else {
               return false
@@ -596,16 +555,5 @@ input[type="text"], textarea {
 .locationDetailWrap .locDetail.inlineDetail {
   display: flex;
   flex-wrap: wrap;
-}
-
-.resImgs {
-  float: left;
-  color: #cecece !important;
-  width: 100px;
-  margin-right: 10px;
-}
-.resImgs img {
-  max-width: 100px;
-  border: 1px solid #ccc;
 }
 </style>
