@@ -1,4 +1,5 @@
 import axios from 'axios'
+import store from './store'
 
 // const mock = (process.env.NODE_ENV === 'production') ? {} : require('./mock')
 const mock = require('./mock')
@@ -9,12 +10,6 @@ function timeout (ms) {
       resolve()
     }, ms)
   })
-}
-
-if (process.env.NODE_ENV === 'production') {
-  axios.defaults.baseURL = 'http://182.92.115.19:8001'
-} else {
-  axios.defaults.baseURL = ''
 }
 
 export default {
@@ -44,166 +39,271 @@ export default {
   // },
 
   async addFace (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post('/api/v2/face', {
-        name: params.Name,
-        desc: params.Desc,
-        gender: params.Gender,
-        birthday: params.Birthday,
-        file: params.file
-      })
-      return res
-    } else {
-      const data = await await timeout(200).then(() => mock.face)
-      data.Name = params.Name
-      data.Desc = params.Desc
-      data.Gender = params.Gender
-      data.Birthday = params.Birthday
-      return { status: 200, data: data }
-    }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.post(`http://${store.state.hosturl}/api/v2/face`, params)
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.face)
+    // data.Name = params.Name
+    // data.Desc = params.Desc
+    // data.Gender = params.Gender
+    // data.Birthday = params.Birthday
+    // return { status: 200, data: data }
+    // }
   },
 
   async editFace (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var res = await axios.put('/api/v2/face/' + params.id, {
-        name: params.Name,
-        desc: params.Desc,
-        gender: params.Gender,
-        birthday: params.Birthday,
-        file: params.file
-      })
-      return res
-    } else {
-      const data = await await timeout(200).then(() => mock.face)
-      data.Name = params.Name
-      data.Desc = params.Desc
-      data.Gender = params.Gender
-      data.Birthday = params.Birthday
-      return { status: 200, data: data }
-    }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.put(`http://${store.state.hosturl}/api/v2/face/${params.id}`, {
+      ID: params.ID,
+      name: params.Name,
+      desc: params.Desc || '',
+      gender: params.Gender || '',
+      birthday: params.Birthday || '',
+      files: params.files
+    })
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.face)
+    // data.Name = params.Name
+    // data.Desc = params.Desc
+    // data.Gender = params.Gender
+    // data.Birthday = params.Birthday
+    // return { status: 200, data: data }
+    // }
   },
 
   async delFace (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var res = await axios.delete('/api/v2/face/' + params.FaceID)
-      return res
-    } else {
-      return { status: 200 }
-    }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.delete(`http://${store.state.hosturl}/api/v2/face/${params.FaceID}`)
+    return res
+    // } else {
+    // return { status: 200 }
+    // }
   },
 
   async getFaces (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var opts = {
-        limit: params.pageSize,
-        page_num: params.pageNum
-      }
-      if (params.name) {
-        opts.name = params.name
-      }
-      var res = await axios.get('/api/v2/face', {
-        params: opts
-      })
-      return res
-    } else {
-      const data = await await timeout(200).then(() => mock.faces)
-      return { status: 200, data: data }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var opts = {
+      limit: params.pageSize,
+      page_num: params.pageNum
     }
+    var res = await axios.get(`http://${store.state.hosturl}/api/v2/face`, {
+      params: opts
+    })
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.faces)
+    // return { status: 200, data: data }
+    // }
+  },
+
+  async getFacesByName (params) {
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var opts = {
+      limit: params.pageSize,
+      page_num: params.pageNum
+    }
+    var res = await axios.get(`http://${store.state.hosturl}/api/v2/face/${params.name}`, {
+      params: opts
+    })
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.faces)
+    // return { status: 200, data: data }
+    // }
   },
 
   async addFeature (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post('/api/v2/feature', {
-        name: params.name,
-        desc: params.desc
-      })
-      return res
-    } else {
-      const data = await await timeout(200).then(() => mock.feature)
-      data.name = params.name
-      data.desc = params.desc
-      return { status: 200, data: data }
-    }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.post(`http://${store.state.hosturl}/api/v2/feature`, {
+      name: params.name,
+      desc: params.desc
+    })
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.feature)
+    // data.name = params.name
+    // data.desc = params.desc
+    // return { status: 200, data: data }
+    // }
   },
 
   async delFeature (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var res = await axios.delete('/api/v2/feature/' + params.id)
-      return res
-    } else {
-      return { status: 200 }
-    }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.delete(`http://${store.state.hosturl}/api/v2/feature/${params.id}`)
+    return res
+    // } else {
+    // return { status: 200 }
+    // }
   },
 
   async addTask (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post('/api/v2/video', params)
-      return res
-    } else {
-      const data = await await timeout(200).then(() => mock.video)
-      return { status: 200, data: data }
-    }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.post(`http://${store.state.hosturl}/api/v2/video`, params)
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.video)
+    // return { status: 200, data: data }
+    // }
   },
 
   async editTask (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var res = await axios.put('/api/v2/video', params)
-      return res
-    } else {
-      const data = await await timeout(200).then(() => mock.video)
-      return { status: 200, data: data }
-    }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.put(`http://${store.state.hosturl}/api/v2/video`, params)
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.video)
+    // return { status: 200, data: data }
+    // }
   },
 
   async delTask (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var res = await axios.delete('/api/v2/video/' + params.id)
-      return res
-    } else {
-      return { status: 200 }
-    }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.delete(`http://${store.state.hosturl}/api/v2/video/${params.id}`)
+    return res
+    // } else {
+    // return { status: 200 }
+    // }
   },
 
   async getTasks (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var res = await axios.get('/api/v2/video', {
-        params: {
-          type: params.type,
-          taskId: params.taskId,
-          page_num: params.pageNum,
-          limit: params.pageSize
-        }
-      })
-      return res
-    } else {
-      const data = await await timeout(200).then(() => mock.videos)
-      return { status: 200, data: data }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var opts = {
+      limit: params.pageSize,
+      page_num: params.pageNum,
+      stream_type: params.stream_type
     }
+    if (params.name) {
+      opts.name = params.name
+    }
+    var res = await axios.get(`http://${store.state.hosturl}/api/v2/video`, {
+      params: opts
+    })
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.videos)
+    // return { status: 200, data: data }
+    // }
+  },
+
+  async getTasksById (params) {
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.get(`http://${store.state.hosturl}/api/v2/video/data/${params.taskId}`)
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.video)
+    // return { status: 200, data: data }
+    // }
+  },
+
+  async getTasksByName (params) {
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var opts = {
+      limit: params.pageSize,
+      page_num: params.pageNum
+    }
+    var res = await axios.get(`http://${store.state.hosturl}/api/v2/video/search/${params.name}`, {
+      params: opts
+    })
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.videos)
+    // return { status: 200, data: data }
+    // }
   },
 
   async taskStop (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post('/api/v2/video/stop/' + params.id)
-      return res
-    } else {
-      const data = await await timeout(200).then(() => mock.video)
-      return { status: 200, data: data }
-    }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.post(`http://${store.state.hosturl}/api/v2/video/stop/${params.id}`)
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.video)
+    // return { status: 200, data: data }
+    // }
   },
 
   async taskRestart (params) {
-    if (process.env.NODE_ENV === 'production') {
-      var res = await axios.post('/api/v2/video/restart/' + params.id)
-      return res
-    } else {
-      const data = await await timeout(200).then(() => mock.video)
-      return { status: 200, data: data }
-    }
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.post(`http://${store.state.hosturl}/api/v2/video/restart/${params.id}`)
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.video)
+    // return { status: 200, data: data }
+    // }
   },
 
   async getTaskResults (params) {
-    var res = await axios.get('/api/v2/video/result/' + params.taskId)
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.get(`http://${store.state.hosturl}/api/v2/video/result/${params.taskId}`)
     return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.result)
+    // return { status: 200, data: data }
+    // }
+  },
+
+  async getDemo () {
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.get(`http://${store.state.hosturl}/api/v2/demo`)
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.demo)
+    // return { status: 200, data: data }
+    // }
+  },
+
+  async demoStart (params) {
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.post(`http://${store.state.hosturl}/api/v2/demo`, params)
+    return res
+    // } else {
+    // return { status: 200, data: {} }
+    // }
+  },
+
+  async demoPause () {
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var res = await axios.post(`http://${store.state.hosturl}/api/v2/demo/pause`)
+    return res
+    // } else {
+    // return { status: 200, data: {} }
+    // }
+  },
+
+  async getDemoMessages (params) {
+    if (!store.state.hosturl) return
+    // if (process.env.NODE_ENV === 'production') {
+    var opts = {
+      limit: params.pageSize
+    }
+    var res = await axios.get(`http://${store.state.hosturl}/api/v2/demo/message`, {
+      params: opts
+    })
+    return res
+    // } else {
+    // const data = await await timeout(200).then(() => mock.demoMessages)
+    // return { status: 200, data: data }
+    // }
   },
 
   async login (params) {

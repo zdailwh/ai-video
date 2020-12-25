@@ -53,12 +53,12 @@ module.exports = {
 
   build: {
     // Template for index.html
-    index: path.resolve(__dirname, '../dist/ai-video/index.html'),
+    index: path.resolve(__dirname, '../dist/aicore/index.html'),
 
     // Paths
-    assetsRoot: path.resolve(__dirname, '../dist/ai-video'),
+    assetsRoot: path.resolve(__dirname, '../dist/aicore'),
     assetsSubDirectory: 'static',
-    assetsPublicPath: '/ai-video/',
+    assetsPublicPath: '/aicore/',
 
     /**
      * Source Maps
