@@ -30,7 +30,7 @@ module.exports = {
     'PfScore': '检测框置信度',
     'Partial': '人体完整置信度',
     'HumanRect': '人体检测框',
-    'HeadRect': '头部检测框',
+    'HeadRect': '人头检测框',
     'FaceRect': '人脸检测框'
   }
 }

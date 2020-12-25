@@ -11,18 +11,20 @@
       <div v-if="taskResItem.name" class="locationDetailWrap">
         <h4>人脸详情</h4>
         <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
-          <template v-for="(detail, k) in taskResItem">
-            <p v-if="resLabel[k]" v-bind:key="k">
-              <label>{{resLabel[k]}}：</label>
-              <template v-if="k === 'expression_three'">
-                {{detail['value']}}（{{detail.confidence}}）
-              </template>
-              <template v-else>
-                <template v-if="typeof(detail) === 'object'">
-                  {{detail['value']}}（{{detail.confidence | myToFixed}}）
+          <template v-for="(label, k) in resLabel">
+            <p v-bind:key="k">
+              <label>{{label}}：</label>
+              <template v-if="taskResItem[k]">
+                <template v-if="k === 'expressionThree'">
+                  {{ taskResItem.expressionThree.value }}（{{ taskResItem.expressionThree.confidence }}）
                 </template>
                 <template v-else>
-                  {{detail}}
+                  <template v-if="typeof(taskResItem[k]) === 'object'">
+                    {{ taskResItem[k].value }}（{{ taskResItem[k].confidence | myToFixed }}）
+                  </template>
+                  <template v-else>
+                    {{ taskResItem[k] }}
+                  </template>
                 </template>
               </template>
             </p>
@@ -366,7 +368,7 @@ input[type="text"], textarea {
 .locationDetailWrap .locDetail p label {
   display: inline-block;
   text-align: right;
-  width: 100px;
+  width: 120px;
   color: #cecece;
   margin-right: 10px;
 }
