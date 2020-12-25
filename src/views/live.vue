@@ -26,14 +26,14 @@
                 <label>{{label}}：</label>
                 <template v-if="taskResItem[k]">
                   <template v-if="k === 'expressionThree'">
-                    {{ taskResItem.expressionThree.value }}（{{ taskResItem.expressionThree.confidence }}）
+                    {{ taskResItem[k].value }}（{{ taskResItem.expressionThree.confidence }}）
                   </template>
                   <template v-else>
                     <template v-if="typeof(taskResItem[k]) === 'object'">
                       {{ taskResItem[k].value }}（{{ taskResItem[k].confidence | myToFixed }}）
                     </template>
                     <template v-else>
-                      {{ taskResItem[k] }}
+                      {{ taskResItem[k] | filterVal(k) }}
                     </template>
                   </template>
                 </template>
@@ -143,6 +143,22 @@ export default {
     myToFixed (val) {
       if (!val) return ''
       return parseFloat(val).toFixed(3)
+    },
+    filterVal (val, key) {
+      var floatArr = ['Blur', 'Yaw', 'Pitch', 'PfScore', 'Partial']
+      var listArr = ['HumanRect', 'HeadRect', 'FaceRect']
+      if (!val) return ''
+      if (floatArr.indexOf(key) !== -1) {
+        return parseFloat(val).toFixed(3)
+      } else if (listArr.indexOf(key) !== -1) {
+        var toArr = JSON.parse(val)
+        var fixedArr = toArr.map((item, idx, arr) => {
+          return parseFloat(item).toFixed(3)
+        })
+        return fixedArr.join(' , ')
+      } else {
+        return val
+      }
     }
   },
   data () {
