@@ -14,7 +14,7 @@
         <div class="media-wrapper">
           <div class="media-player">
             <div class="playwrap">
-              <div id="tcplayer"></div>
+              <div ref="videoobj"></div>
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@
 </template>
 <script>
 import api from '../api'
-import { TcPlayer } from 'tcplayer'
+// import { TcPlayer } from 'tcplayer'
 import Setting from '../components/Setting'
 import Face from '../components/Face'
 import AddTask from '../components/AddTask.vue'
@@ -257,50 +257,71 @@ export default {
     },
     createPlayer () {
       var url = this.task.rtsp
-      document.querySelector('#tcplayer').innerHTML = ''
-      var player = new TcPlayer('tcplayer', {
-        mp4: url,
-        autoplay: true,
-        width: '100%',
-        height: 'auto',
-        wording: {
-          1001: '网络错误，请检查网络配置或者播放链接是否正确',
-          1002: '获取视频失败，请检查播放链接是否有效',
-          2032: '获取视频失败，请检查播放链接是否有效',
-          2048: '无法加载视频文件，跨域访问被拒绝'
-        },
-        listener: function (msg) {
-          // console.log('listener:', msg)
-          // if (msg.type === 'play') {
-          //   self.videoPlay()
-          // }
-          // if (msg.type === 'loadeddata') {
-          //   player.play()
-          // }
-        }
-      })
-      window.player = player
+      // var url = 'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov'
+
+      let obj = document.createElement('OBJECT')
+      obj.setAttribute('id', 'vlc')
+      obj.setAttribute('classid', 'clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921')
+      obj.setAttribute('codebase', 'http://comic.sjtu.edu.cn/vlc/cab/axvlc.cab')
+      obj.setAttribute('type', 'application/x-vlc-plugin')
+      obj.setAttribute('events', true)
+
+      let param1 = document.createElement('param')
+      param1.setAttribute('name', 'mrl')
+      param1.setAttribute('value', url)
+      obj.appendChild(param1)
+
+      let param2 = document.createElement('param')
+      param2.setAttribute('name', 'src')
+      param2.setAttribute('value', url)
+      obj.appendChild(param2)
+
+      let param3 = document.createElement('param')
+      param3.setAttribute('name', 'controls')
+      param3.setAttribute('value', true)
+      obj.appendChild(param3)
+
+      let param4 = document.createElement('param')
+      param4.setAttribute('name', 'autoplay')
+      param4.setAttribute('value', true)
+      obj.appendChild(param4)
+
+      let embed = document.createElement('embed')
+      embed.setAttribute('type', 'application/x-vlc-plugin')
+      embed.setAttribute('version', 'VideoLAN.VLCPlugin.3.0.11')
+      embed.setAttribute('autoplay', 'yes')
+      embed.setAttribute('loop', 'no')
+      embed.setAttribute('width', '640')
+      embed.setAttribute('height', '480')
+      embed.setAttribute('target', url)
+      obj.appendChild(embed)
+
+      obj.setAttribute('width', '640')
+      obj.setAttribute('height', '480')
+      this.$refs['videoobj'].appendChild(obj)
+      // 在这里通过ocxTest的id来寻找到ocx控件
+      // this.vlc = document.getElementById('vlc')
     },
     videoFixed (params) {
       this.taskResItem = params.item
-      var timeStr = params.currentTime
-      var h = 0
-      var m = 0
-      var s = 0
-      if (timeStr.indexOf('时') !== -1) {
-        h = timeStr.substring(0, timeStr.indexOf('时'))
-        timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('时') + 1), '')
-      }
-      if (timeStr.indexOf('分') !== -1) {
-        m = timeStr.substring(0, timeStr.indexOf('分'))
-        timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('分') + 1), '')
-      }
-      if (timeStr.indexOf('秒') !== -1) {
-        s = timeStr.substring(0, timeStr.indexOf('秒'))
-      }
-      var time = parseInt(h * 3600) + parseInt(m * 60) + parseInt(s)
-      // console.log(h + ':' + m + ':' + s + ':::' + time)
-      window.player.currentTime(time)
+      // var timeStr = params.currentTime
+      // var h = 0
+      // var m = 0
+      // var s = 0
+      // if (timeStr.indexOf('时') !== -1) {
+      //   h = timeStr.substring(0, timeStr.indexOf('时'))
+      //   timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('时') + 1), '')
+      // }
+      // if (timeStr.indexOf('分') !== -1) {
+      //   m = timeStr.substring(0, timeStr.indexOf('分'))
+      //   timeStr = timeStr.replace(timeStr.substring(0, timeStr.indexOf('分') + 1), '')
+      // }
+      // if (timeStr.indexOf('秒') !== -1) {
+      //   s = timeStr.substring(0, timeStr.indexOf('秒'))
+      // }
+      // var time = parseInt(h * 3600) + parseInt(m * 60) + parseInt(s)
+      // // console.log(h + ':' + m + ':' + s + ':::' + time)
+      // window.player.currentTime(time)
     },
     delTask (record, idx) {
       api.delTask({id: record.ID}).then(res => {

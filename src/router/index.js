@@ -10,6 +10,7 @@ import Star from '@/views/star'
 import Live from '@/views/live'
 import Setting from '@/views/setting'
 import Demo from '@/views/demo'
+import LiveTest from '@/views/liveTest'
 
 Vue.use(Router)
 
@@ -88,6 +89,14 @@ export default new Router({
       component: Demo,
       meta: {
         title: '陌生人Demo'
+      }
+    },
+    {
+      path: '/livetest',
+      name: 'LiveTest',
+      component: LiveTest,
+      meta: {
+        title: '直播流测试'
       }
     }
   ]

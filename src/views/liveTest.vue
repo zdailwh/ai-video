@@ -16,13 +16,6 @@
             <div class="playwrap">
               <!-- <div id="tcplayer"></div> -->
               <div ref="videoobj"></div>
-              <!-- <object type="application/x-vlc-plugin" id="vlc" name="vlc" class="vlcPlayer" events="True">
-                <param name="mrl" value="rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov" />
-                <param name="controls" value="true" />
-                <param name="loop" value="false" />
-                <param name="autoplay" value="true" />
-                <embed id="vlcEmb" type="application/x-vlc-plugin" version="VideoLAN.VLCPlugin.3.0.11" autoplay="yes" loop="no" width="640" height="480" target="rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov" />
-              </object> -->
             </div>
           </div>
         </div>
@@ -288,32 +281,50 @@ export default {
     },
     createPlayer () {
       // var url = this.task.rtsp
+      var url = 'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov'
 
       let obj = document.createElement('OBJECT')
-      // obj.setAttribute('id', 'vlc')
+      obj.setAttribute('id', 'vlc')
       obj.setAttribute('classid', 'clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921')
       obj.setAttribute('codebase', 'http://comic.sjtu.edu.cn/vlc/cab/axvlc.cab')
       obj.setAttribute('type', 'application/x-vlc-plugin')
-      obj.setAttribute('mrl', 'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov')
-      obj.setAttribute('src', 'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov')
-      obj.setAttribute('autoplay', true)
+      obj.setAttribute('events', true)
+
+      let param1 = document.createElement('param')
+      param1.setAttribute('name', 'mrl')
+      param1.setAttribute('value', url)
+      obj.appendChild(param1)
+
+      let param2 = document.createElement('param')
+      param2.setAttribute('name', 'src')
+      param2.setAttribute('value', url)
+      obj.appendChild(param2)
+
+      let param3 = document.createElement('param')
+      param3.setAttribute('name', 'controls')
+      param3.setAttribute('value', true)
+      obj.appendChild(param3)
+
+      let param4 = document.createElement('param')
+      param4.setAttribute('name', 'autoplay')
+      param4.setAttribute('value', true)
+      obj.appendChild(param4)
+
+      let embed = document.createElement('embed')
+      embed.setAttribute('type', 'application/x-vlc-plugin')
+      embed.setAttribute('version', 'VideoLAN.VLCPlugin.3.0.11')
+      embed.setAttribute('autoplay', 'yes')
+      embed.setAttribute('loop', 'no')
+      embed.setAttribute('width', '640')
+      embed.setAttribute('height', '480')
+      embed.setAttribute('target', url)
+      obj.appendChild(embed)
+
       obj.setAttribute('width', '640')
       obj.setAttribute('height', '480')
       this.$refs['videoobj'].appendChild(obj)
       // 在这里通过ocxTest的id来寻找到ocx控件
       // this.vlc = document.getElementById('vlc')
-
-      // document.querySelectorAll('.playwrap')[0].innerHTML = ''
-      // var myvideo = document.createElement('VIDEO')
-      // myvideo.setAttribute('id', 'vlc')
-      // myvideo.setAttribute('type', 'application/x-vlc-plugin')
-      // myvideo.setAttribute('width', '640')
-      // myvideo.setAttribute('height', '480')
-      // myvideo.setAttribute('autoplay', true)
-      // myvideo.setAttribute('controls', true)
-      // myvideo.setAttribute('src', 'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov')
-      // document.querySelectorAll('.playwrap')[0].appendChild(myvideo)
-      // myvideo.load()
     },
     videoFixed (params) {
       this.taskResItem = params.item
