@@ -291,12 +291,12 @@ export default {
       embed.setAttribute('version', 'VideoLAN.VLCPlugin.3.0.11')
       embed.setAttribute('autoplay', 'yes')
       embed.setAttribute('loop', 'no')
-      embed.setAttribute('width', '640')
+      embed.setAttribute('width', '100%')
       embed.setAttribute('height', '480')
       embed.setAttribute('target', url)
       obj.appendChild(embed)
 
-      obj.setAttribute('width', '640')
+      obj.setAttribute('width', '100%')
       obj.setAttribute('height', '480')
       this.$refs['videoobj'].appendChild(obj)
       // 在这里通过ocxTest的id来寻找到ocx控件
