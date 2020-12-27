@@ -35,11 +35,11 @@
     <p></p>
     <p class="resImgs">
       人脸图：
-      <img :src="resItem.data.faceImageUri">
+      <img :src="'http://' + $store.state.hosturl + '/v5/resources/data?uri=' + resItem.data.FaceImageUri + '&content-type=image/jpeg'">
     </p>
     <p class="resImgs">
       人体图：
-      <img :src="resItem.data.humanImageUri">
+      <img :src="'http://' + $store.state.hosturl + '/v5/resources/data?uri=' + resItem.data.HumanImageUri + '&content-type=image/jpeg'">
     </p>
   </div>
 </template>
