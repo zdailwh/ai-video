@@ -18,7 +18,7 @@
             </div>
           </div>
         </div>
-        <div v-if="taskResItem.name" class="locationDetailWrap">
+        <div v-if="taskResItem.face_name" class="locationDetailWrap">
           <h4>人脸详情</h4>
           <div class="locDetail" :class="smallLayout? 'inlineDetail': ''">
             <ResDetail :res-item="taskResItem" />
