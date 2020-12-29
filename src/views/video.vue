@@ -17,7 +17,7 @@
     </div>
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
       <a-tabs default-active-key="1" size="small" @change="tabChange">
-        <a-tab-pane key="1" tab="任务结果">
+        <a-tab-pane key="1" :tab="'任务结果（共' + (resDatalist && resDatalist.length) + '条）'">
           <div class="searchWrap_video">
             <a-form-model ref="searchForm" :model="searchForm" layout="inline">
               <a-form-model-item label="明星">

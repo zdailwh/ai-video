@@ -33,7 +33,7 @@
               创建任务
             </span>
           </a-tab-pane>
-          <a-tab-pane v-for="(record, idx) in datalist" :key="record.ID" :tab="record.name">
+          <a-tab-pane v-for="(record, idx) in datalist" :key="record.ID" :tab="record.name + '（共' + (resDatalist && resDatalist.length) + '条）'">
             <div class="oprateWrap">
               <a-button type="primary" size="small" @click="toEdit(record, idx, 'edit')">编辑</a-button>
               <a-button type="primary" size="small" v-if="record.status === 1" :disabled="true">删除</a-button>
