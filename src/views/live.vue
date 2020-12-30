@@ -33,7 +33,7 @@
               创建任务
             </span>
           </a-tab-pane>
-          <a-tab-pane v-for="(record, idx) in datalist" :key="record.ID" :tab="record.name + '（共' + (resDatalist && resDatalist.length) + '条）'">
+          <a-tab-pane v-for="(record, idx) in datalist" :key="record.ID" :tab="record.name + '（共' + resDataTotal + '条）'">
             <div class="oprateWrap">
               <a-button type="primary" size="small" @click="toEdit(record, idx, 'edit')">编辑</a-button>
               <a-button type="primary" size="small" v-if="record.status === 1" :disabled="true">删除</a-button>
@@ -84,7 +84,7 @@
                 </a-form-model-item>
               </a-form-model>
             </div>
-            <div v-if="!resDatalist.length" class="loadingWrap"><img src="static/loading_.gif"></div>
+            <div v-if="resDataTotal === ''" class="loadingWrap"><img src="static/loading_.gif"></div>
             <Face :taskresult="filtedResDatalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
           </a-tab-pane>
         </a-tabs>
@@ -111,6 +111,7 @@ export default {
     next()
   },
   beforeRouteLeave (to, from, next) {
+    this.continueCircle = false
     window.clearTimeout(timer)
     next()
   },
@@ -128,6 +129,8 @@ export default {
       pageSize: 20,
       task: {},
       taskId: '',
+      pageNumRes: 1,
+      pageSizeRes: 500,
       resDatalist: [],
       filtedResDatalist: [],
       taskResItem: {},
@@ -151,7 +154,9 @@ export default {
       editItem: {},
       editKey: '',
       editTag: '', // 'edit' || 'copy'
-      facesDatalist: []
+      facesDatalist: [],
+      resDataTotal: '',
+      continueCircle: true // 是否继续轮循
     }
   },
   mounted () {
@@ -205,6 +210,8 @@ export default {
         this.activeTab = this.prevTab
       } else {
         this.activeTab = tab
+        this.pageNumRes = 1
+        this.resDataTotal = ''
         this.getPlayurl(tab)
         this.getTaskResults(tab)
       }
@@ -232,21 +239,25 @@ export default {
       })
     },
     getTaskResults (tid) {
-      // var that = this
+      var that = this
       var params = {
-        taskId: tid
+        taskId: tid,
+        pageNum: this.pageNumRes,
+        pageSize: this.pageSizeRes
       }
       api.getTaskResults(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          // res.data.map((value, index, array) => {
-          //   value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
-          // })
-          this.resDatalist = res.data || []
+          this.resDatalist = this.resDatalist.concat(res.data.data)
+          this.resDataTotal = res.data.count
+          this.pageNumRes += 1
           this.filtedResDatalist = this.resDatalist
-          // window.clearTimeout(timer)
-          // timer = window.setTimeout(function () {
-          //   that.getTaskResults(tid)
-          // }, 5000)
+
+          window.clearTimeout(timer)
+          if (this.continueCircle && res.data.data.length === this.pageSizeRes) {
+            timer = window.setTimeout(function () {
+              that.getTaskResults(tid)
+            }, 0)
+          }
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -415,8 +426,10 @@ export default {
       var filterExp = this.searchForm.expression
       if (filterName === '' && filterExp === '全部') {
         // this.filtedResDatalist = this.resDatalist
+        this.continueCircle = true
         this.getTaskResults(this.activeTab)
       } else {
+        this.continueCircle = false
         window.clearTimeout(timer)
         var arr = this.resDatalist
         arr = arr.filter((item, val, array) => {

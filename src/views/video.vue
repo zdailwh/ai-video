@@ -17,7 +17,7 @@
     </div>
     <div class="d-right" :style="smallLayout? 'width: 100%;height: auto;': ''">
       <a-tabs default-active-key="1" size="small" @change="tabChange">
-        <a-tab-pane key="1" :tab="'任务结果（共' + (resDatalist && resDatalist.length) + '条）'">
+        <a-tab-pane key="1" :tab="'任务结果（共' + resDataTotal + '条）'">
           <div class="searchWrap_video">
             <a-form-model ref="searchForm" :model="searchForm" layout="inline">
               <a-form-model-item label="明星">
@@ -35,7 +35,7 @@
               </a-form-model-item>
             </a-form-model>
           </div>
-          <div v-if="!resDatalist.length" class="loadingWrap"><img src="static/loading_.gif"></div>
+          <div v-if="resDataTotal === ''" class="loadingWrap"><img src="static/loading_.gif"></div>
           <Face :taskresult="filtedResDatalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
         </a-tab-pane>
         <a-tab-pane key="2" tab="任务基本信息">
@@ -58,6 +58,7 @@ export default {
     next()
   },
   beforeRouteLeave (to, from, next) {
+    this.continueCircle = false
     window.clearTimeout(timer)
     next()
   },
@@ -65,6 +66,8 @@ export default {
   data () {
     return {
       smallLayout: false,
+      pageNum: 1,
+      pageSize: 500,
       resDatalist: [],
       filtedResDatalist: [],
       task: {},
@@ -81,7 +84,9 @@ export default {
         { name: '悲伤', value: 'sad' },
         { name: '高兴', value: 'happy' },
         { name: '中性', value: 'neutral' }
-      ]
+      ],
+      resDataTotal: '',
+      continueCircle: true // 是否继续轮循
     }
   },
   mounted () {
@@ -121,21 +126,25 @@ export default {
       })
     },
     getTaskResults (tid) {
-      // var that = this
+      var that = this
       var params = {
-        taskId: tid
+        taskId: tid,
+        pageNum: this.pageNum,
+        pageSize: this.pageSize
       }
       api.getTaskResults(params).then(res => {
         if (res.status >= 200 && res.status < 300) {
-          // res.data.map((value, index, array) => {
-          //   value.fullUri = value.fullUri.replace('http://172.16.44.101:8001', assetsBaseurl)
-          // })
-          this.resDatalist = res.data || []
+          this.resDatalist = this.resDatalist.concat(res.data.data)
+          this.resDataTotal = res.data.count
+          this.pageNum += 1
           this.filtedResDatalist = this.resDatalist
-          // window.clearTimeout(timer)
-          // timer = window.setTimeout(function () {
-          //   that.getTaskResults(tid)
-          // }, 5000)
+
+          window.clearTimeout(timer)
+          if (this.continueCircle && res.data.data.length === this.pageSize) {
+            timer = window.setTimeout(function () {
+              that.getTaskResults(tid)
+            }, 0)
+          }
         }
       }).catch(error => {
         if (error.response && error.response.data) {
@@ -178,8 +187,10 @@ export default {
       var filterExp = this.searchForm.expression
       if (filterName === '' && filterExp === '全部') {
         // this.filtedResDatalist = this.resDatalist
+        this.continueCircle = true
         this.getTaskResults(this.taskId)
       } else {
+        this.continueCircle = false
         window.clearTimeout(timer)
         var arr = this.resDatalist
         arr = arr.filter((item, val, array) => {

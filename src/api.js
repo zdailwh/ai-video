@@ -251,7 +251,13 @@ export default {
   async getTaskResults (params) {
     if (!store.state.hosturl) return
     // if (process.env.NODE_ENV === 'production') {
-    var res = await axios.get(`http://${store.state.hosturl}/api/v2/video/result/${params.taskId}`)
+    var opts = {
+      page: params.pageNum,
+      limit: params.pageSize
+    }
+    var res = await axios.get(`http://${store.state.hosturl}/api/v2/video/result/${params.taskId}`, {
+      params: opts
+    })
     return res
     // } else {
     // const data = await await timeout(200).then(() => mock.result)
