@@ -3,7 +3,7 @@
     <ul class="listWrap" v-if="taskresult.length">
       <li class="list-item" :class="{ currBox: currBoxKey === k }" v-for="(fItem,k) in taskresult" v-bind:key="k" @click="changeBox(fItem, k)">
         <div class="img-box">
-          <img v-if="fItem.data.FaceImageUri" :src="'http://' + $store.state.hosturl + '/v5/resources/data?uri=' + fItem.data.FaceImageUri + '&content-type=image/jpeg'" alt="人脸图">
+          <img v-if="fItem.data.FaceImageUri" v-lazy="'http://' + $store.state.hosturl + '/v5/resources/data?uri=' + fItem.data.FaceImageUri + '&content-type=image/jpeg'" alt="人脸图">
           <img v-else src="../assets/user.png" alt="人脸图" style="width:32px;height:32px;">
         </div>
         <div class="desc-box">
@@ -16,7 +16,7 @@
         </div>
       </li>
     </ul>
-    <div v-else><p>还没有识别结果！</p></div>
+    <!-- <div v-else><p>还没有识别结果！</p></div> -->
   </div>
 </template>
 <script>

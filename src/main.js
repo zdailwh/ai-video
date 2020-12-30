@@ -4,6 +4,7 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import store from './store'
+import VueLazyload from 'vue-lazyload'
 
 import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/antd.less'
@@ -13,6 +14,11 @@ import './styles/reset.css'
 import { getToken } from './utils/auth'
 
 Vue.use(Antd)
+Vue.use(VueLazyload, {
+  error: 'static/error.png', // 这个是请求失败后显示的图片
+  loading: 'static/loading.gif', // 这个是加载的loading过渡效果
+  try: 2 // 这个是加载图片数量
+})
 
 Vue.config.productionTip = false
 

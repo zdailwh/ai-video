@@ -84,6 +84,7 @@
                 </a-form-model-item>
               </a-form-model>
             </div>
+            <div v-if="!resDatalist.length" class="loadingWrap"><img src="static/loading_.gif"></div>
             <Face :taskresult="filtedResDatalist" :smalllayout="smallLayout" @videofixed="videoFixed" />
           </a-tab-pane>
         </a-tabs>
