@@ -20,7 +20,7 @@
     <div class="tableWrap">
       <a-table :columns="columns" :data-source="datalist" :scroll="{ x: true }" rowKey="ID" :pagination="false">
         <span slot="Gender" slot-scope="Gender">
-          {{!Gender? '':Gender === 1? '男': '女'}}
+          {{!Gender? '':(Gender === '1' || Gender === 1)? '男': '女'}}
         </span>
         <span slot="FullURI" slot-scope="FullURI">
           <a-popover title="">
